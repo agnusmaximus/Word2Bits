@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "../base/sig_attr.h"
 
 using namespace std;
