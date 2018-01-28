@@ -7,11 +7,19 @@
 
 using namespace std;
 
+const char *byte_to_binary(int x) {
+    static char b[9];
+    b[0] = '\0';
+    int z;
+    for (z = 128; z > 0; z >>= 1)
+        strcat(b, ((x & z) == z) ? "1" : "0");
+    return b;
+}
+
 void print_bit_matrix(char *matrix, int n_rows, int n_cols) {
     for (int i = 0; i < n_rows; i++) {
 	for (int j = 0; j < n_cols; j++) {
-	    std::bitset<8> bits(matrix[i*n_cols+j]);
-	    cout << bits;
+	    cout << byte_to_binary(matrix[i*n_cols+j]);
 	}
 	cout << endl;
     }
