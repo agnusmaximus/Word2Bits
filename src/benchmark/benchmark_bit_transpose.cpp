@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <assert.h>
-#include "bit_transpose.h"
+#include "../base/bit_transpose.h"
 
 using namespace std;
 

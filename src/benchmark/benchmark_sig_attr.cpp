@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <assert.h>
-#include "sig_attr.h"
+#include "../base/sig_attr.h"
 
 using namespace std;
 
@@ -74,7 +74,6 @@ void check_correctness_sig_attr(int n_rows, int n_cols) {
     sig_attr_general(bits, n_cols, n_rows,
 		     &sig_attr, &sig_attr_row);
 
-    printf("%d\n", max_count);
     printf("Got: %d vs Expected: %d\n",
 	   sig_attr, correct_sig_attr);
     printf("Got: %d vs Expected: %d\n",
@@ -159,6 +158,9 @@ int main() {
     check_correctness_sig_attr(8, 64);
     check_correctness_sig_attr(8, 256);
     check_correctness_sig_attr(8, 1024);
+    check_correctness_sig_attr(16, 1024);
+    check_correctness_sig_attr(32, 1024);
+    check_correctness_sig_attr(64, 1024);
     cout << "Starting sig attr calculation benchmark..." << endl;
     benchmark_sig_attr(8, 8, 1000000);
     benchmark_sig_attr(8, 16, 1000000);

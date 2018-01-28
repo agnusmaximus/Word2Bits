@@ -3,12 +3,12 @@ CFLAGS=-Ofast
 
 benchmark_bit_transpose:
 	rm -f bit_transpose_benchmark
-	$(CC) src/benchmark_bit_transpose.cpp $(CFLAGS) -o bit_transpose_benchmark
+	$(CC) src/benchmark/benchmark_bit_transpose.cpp $(CFLAGS) -o bit_transpose_benchmark
 	./bit_transpose_benchmark
 
 benchmark_sig_attr:
 	rm -f sig_attr_benchmark
-	$(CC) src/benchmark_sig_attr.cpp $(CFLAGS) -o sig_attr_benchmark
+	$(CC) src/benchmark/benchmark_sig_attr.cpp $(CFLAGS) -o sig_attr_benchmark
 	./sig_attr_benchmark
 
 clean:
