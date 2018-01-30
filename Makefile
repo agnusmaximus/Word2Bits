@@ -1,16 +1,7 @@
 CC=g++
-CFLAGS=-Ofast
+CFLAGS=-Ofast -march=native
 
-benchmark_bit_transpose:
-	rm -f bit_transpose_benchmark
-	$(CC) src/benchmark/benchmark_bit_transpose.cpp $(CFLAGS) -o bit_transpose_benchmark
-	./bit_transpose_benchmark
-
-benchmark_sig_attr:
-	rm -f sig_attr_benchmark
-	$(CC) src/benchmark/benchmark_sig_attr.cpp $(CFLAGS) -o sig_attr_benchmark
-	./sig_attr_benchmark
-
+word2bits:
+	$(CC) src/word2bits.cpp $(CFLAGS) -o word2bits
 clean:
-	rm bit_transpose_benchmark
-	rm sig_attr_benchmark
+	rm -f word2bits
