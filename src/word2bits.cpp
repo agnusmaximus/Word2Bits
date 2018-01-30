@@ -1,4 +1,5 @@
 #include <iostream>
+#include <math.h>
 #include <vector>
 #include <assert.h>
 #include <string.h>
@@ -8,11 +9,11 @@
 #include <map>
 #include <ctime>
 
-#define WINDOW_SIZE 10
-#define NEGATIVE_WINDOW_SIZE 10
+#define WINDOW_SIZE 16
+#define NEGATIVE_WINDOW_SIZE 8
 #define BITSIZE 256
 #define SUBSAMPLING_COEFFICIENT 1e-3
-#define BIT_LEARNING_RATE .9
+#define BIT_LEARNING_RATE .6
 #define BITS_PER_BYTE 8
 #define N_WORKERS 1
 #define N_EPOCHS_PER_WORKER 1e9
@@ -52,7 +53,7 @@ Vocabulary *CreateVocabulary(const char *filepath) {
 
     // Create hashmaps from words to indices
     ifstream file(filepath);
-    while (file.good()) {
+    while (!file.eof()) {
 	string cur_word;
 	file >> cur_word;
 
@@ -296,13 +297,12 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	// Add Word to context for both positive and negative contexts w/ subsampling.
 	int positive_word_index = -1;
 	while (!Keep(vocab, positive_word_index)) {
-	    if (!fin.good()) {
-		fin.seekg(0, ios::beg);
-		fin.clear();
+	    if (fin.eof()) {
+	      fin.close();
+	      fin.open(filepath);
 	    }
 	    fin >> word;
 	    positive_word_index = WordToIndex(vocab, word);
-	    break;
 	}
 	char *positive_bits = WordToBits(vocab, positive_word_index, emb1);
 	AddWordToContext(positive_context, positive_word_index, positive_bits);
@@ -315,15 +315,10 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	AddWordToContext(negative_context, negative_word_index, negative_bits);
 
 	// Reset file pointer if read to end.
-	if (!fin.good()) {
-	    n_epochs_processed++;
-	    fin.seekg(0, ios::beg);
-	    fin.clear();
-
-	    // Swap emb1 and emb2
-	    char *tmp = emb1;
-	    emb1 = emb2;
-	    emb2 = tmp;
+	if (fin.eof()) {
+	  fin.close();
+	  fin.open(filepath);
+	  n_epochs_processed++;
 	}
 
 	if (words_processed % 100000 == 0) {
@@ -337,6 +332,10 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	    negative_running_loss = 0;
 	}
 
+	// Swap emb1 and emb2
+	char *tmp = emb1;
+	emb1 = emb2;
+	emb2 = tmp;
 	words_processed++;
     }
 
