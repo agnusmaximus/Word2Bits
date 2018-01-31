@@ -13,9 +13,10 @@
 #include <ctime>
 #include <time.h>
 
-#define WINDOW_SIZE 16
-#define NEGATIVE_WINDOW_SIZE 32
-#define BITSIZE 128
+#define WINDOW_SIZE 10
+#define NEGATIVE_WINDOW_SIZE 10
+#define BITSIZE 64
+#define LEARNING_RATE .05
 #define SUBSAMPLING_COEFFICIENT 1e-3
 #define BITS_PER_BYTE 8
 #define N_WORKERS 1
@@ -127,8 +128,8 @@ Vocabulary *CreateVocabulary(const char *filepath) {
 
     // Allocate and randomize embeddings
     int nchars = vocab->n_unique_words*BITSIZE/BITS_PER_BYTE;
-    vocab->emb1 = new char[nchars];
-    vocab->weights = new float[vocab->n_unique_words * BITSIZE];
+    vocab->emb1 = (char *)malloc(sizeof(char) * nchars);
+    vocab->weights = (float *)malloc(sizeof(float) * (vocab->n_unique_words * BITSIZE));;
     for (int i = 0; i < vocab->n_unique_words; i++) {
       for (int j = 0; j < BITSIZE; j++) {
 	vocab->weights[i*BITSIZE+j] = ((float) rand() / (RAND_MAX));
@@ -174,8 +175,8 @@ int WordToIndex(Vocabulary *vocab, string &word) {
 
 // Destroy vocabulary
 void DestroyVocabulary(Vocabulary *vocab) {
-    delete vocab->weights;
-    delete vocab->emb1;
+    free(vocab->weights);
+    free(vocab->emb1);
     delete vocab;
 }
 
@@ -216,13 +217,13 @@ Context * CreateContext(Vocabulary *v, int size) {
     context->vocab = v;
     context->counter = 0;
     context->did_wrap = 0;
-    context->context = new char *[size];
-    context->word_ids = new int[size];
+    context->context = (char **)malloc(sizeof(char *) * size);
+    context->word_ids = (int *)malloc(sizeof(int) * size);
     memset(context->context, 0, sizeof(char *) * size);
     memset(context->bitcounts, 0, sizeof(char) * BITSIZE);
     memset(context->word_ids, 0, sizeof(int) * size);
     for (int i = 0; i < size; i++) {
-	context->context[i] = new char[BITSIZE/BITS_PER_BYTE];
+      context->context[i] = (char *)malloc(sizeof(char) * BITSIZE/BITS_PER_BYTE);
     }
     return context;
 }
@@ -271,9 +272,9 @@ void AddWordToContext(Context *c, int word_id, char *embedding) {
 
 void DestroyContext(Context *c) {
     for (int i = 0; i < c->size; i++)
-	delete c->context[i];
-    delete c->context;
-    delete c->word_ids;
+        free(c->context[i]);
+    free(c->context);
+    free(c->word_ids);
     delete c;
 }
 
@@ -328,18 +329,29 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 		printf("- %f words/sec (epoch %d) (neg loss %lf)\n",
 		       words_processed/elapsed, n_epochs_processed+1,
 		       negative_running_loss / PRINT_INTERVAL / BITSIZE);
+		if (n_epochs_processed == 0) break;
 	    }
 	    
 	    negative_running_loss = 0;
 
 	    int i1 = vocab->word_to_index["one"];
 	    int i2 = vocab->word_to_index["two"];
-	    int i3 = vocab->word_to_index["dog"];
-	    int i4 = vocab->word_to_index["three"];
+	    int i3 = vocab->word_to_index["three"];
+	    int i4 = vocab->word_to_index["dog"];
 	    PrintVectorDifference(vocab, i1, i2);
 	    PrintVectorDifference(vocab, i1, i3);
+	    PrintVectorDifference(vocab, i2, i3);
 	    PrintVectorDifference(vocab, i1, i4);
-	    PrintVectorDifference(vocab, i3, i4);
+	    printf("--\n");
+	    int i5 = vocab->word_to_index["england"];
+	    int i6 = vocab->word_to_index["english"];
+	    int i7 = vocab->word_to_index["japan"];
+	    int i8 = vocab->word_to_index["japanese"];
+	    int i9 = vocab->word_to_index["israel"];
+	    int i10 = vocab->word_to_index["israeli"];
+	    PrintVectorDifference(vocab, i5, i6);
+	    PrintVectorDifference(vocab, i7, i8);
+	    PrintVectorDifference(vocab, i9, i10);
 	    //int print_word_index = center_word_index;
 	    //int print_word_index = vocab->word_to_index["man"];
 	    //printf("%s: \n", vocab->index_to_word[print_word_index].c_str());
@@ -391,8 +403,9 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	    // Divide weight by 2 (half of the gradient comes from positive context, half from negative)
 	    float norm_weight = weight / 2;
 	    float grad = norm_weight - .5;
-	    vocab->weights[center_word_index*BITSIZE + i+k] += .1 * grad;
-
+	    vocab->weights[center_word_index*BITSIZE + i+k] += LEARNING_RATE * grad;
+	    //vocab->weights[center_word_index*BITSIZE + i+k] += (LEARNING_RATE/2 * ((float) rand() / (RAND_MAX) - .5));
+	    //vocab->weights[center_word_index*BITSIZE + i+k] = min((float)1, max((float)0,vocab->weights[center_word_index*BITSIZE + i+k]));	    
 	    // Assertions
 	    assert(positive_counts >= self_count);
 	    assert(negative_counts <= NEGATIVE_WINDOW_SIZE);
