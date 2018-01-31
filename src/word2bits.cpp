@@ -23,12 +23,27 @@
 #define N_EPOCHS_PER_WORKER 1e9
 #define UNIGRAM_TABLE_SIZE 1e8
 #define PRINT_INTERVAL 1000000
+#define FAST_RAND_MAX 32768
 
 using namespace std;
 
 ////////////////////////////////////////
 //            MISC UTILS              //
 ////////////////////////////////////////
+
+static unsigned int g_seed;
+
+// Used to seed the generator.
+inline void fast_srand(int seed) {
+  g_seed = seed;
+}
+
+// Compute a pseudorandom integer.
+// Output value in range [0, 32767]
+inline int fast_rand(void) {
+  g_seed = (214013*g_seed+2531011);
+  return (g_seed>>16)&0x7FFF;
+}
 
 unsigned long long SwapLong(unsigned long long X) {
   uint64_t x = (uint64_t) X;
@@ -132,7 +147,7 @@ Vocabulary *CreateVocabulary(const char *filepath) {
     vocab->weights = (float *)malloc(sizeof(float) * (vocab->n_unique_words * BITSIZE));;
     for (int i = 0; i < vocab->n_unique_words; i++) {
       for (int j = 0; j < BITSIZE; j++) {
-	vocab->weights[i*BITSIZE+j] = ((float) rand() / (RAND_MAX));
+	vocab->weights[i*BITSIZE+j] = ((float)fast_rand() / (FAST_RAND_MAX));
 	SetBitAtIndex(WordToBits(vocab, i, vocab->emb1), j, vocab->weights[i*BITSIZE+j] >= .5);
       }
     }
@@ -162,11 +177,11 @@ int Keep(Vocabulary *v, int word) {
     if (word < 0) return 0;
     float z_w = v->word_index_to_count[word] / (float)v->n_total_words;
     float p_w = (sqrt(z_w/(float).001) + 1) * (.001 / z_w);
-    return ((float) rand() / (RAND_MAX)) <= p_w;
+    return ((float)fast_rand() / (FAST_RAND_MAX)) <= p_w;
 }
 
 int NegativeSample(Vocabulary *v) {
-    return v->unigram_table[rand() % v->unigram_table.size()];
+    return v->unigram_table[fast_rand() % v->unigram_table.size()];
 }
 
 int WordToIndex(Vocabulary *vocab, string &word) {
@@ -329,7 +344,6 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 		printf("- %f words/sec (epoch %d) (neg loss %lf)\n",
 		       words_processed/elapsed, n_epochs_processed+1,
 		       negative_running_loss / PRINT_INTERVAL / BITSIZE);
-		if (n_epochs_processed == 0) break;
 	    }
 	    
 	    negative_running_loss = 0;
@@ -404,7 +418,7 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	    float norm_weight = weight / 2;
 	    float grad = norm_weight - .5;
 	    vocab->weights[center_word_index*BITSIZE + i+k] += LEARNING_RATE * grad;
-	    //vocab->weights[center_word_index*BITSIZE + i+k] += (LEARNING_RATE/2 * ((float) rand() / (RAND_MAX) - .5));
+	    //vocab->weights[center_word_index*BITSIZE + i+k] += (LEARNING_RATE/2 * ((float)fast_rand() / (FAST_RAND_MAX) - .5));
 	    //vocab->weights[center_word_index*BITSIZE + i+k] = min((float)1, max((float)0,vocab->weights[center_word_index*BITSIZE + i+k]));	    
 	    // Assertions
 	    assert(positive_counts >= self_count);
