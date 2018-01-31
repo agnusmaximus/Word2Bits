@@ -1,3 +1,5 @@
+#define NDEBUG
+
 #include <iostream>
 #include <math.h>
 #include <vector>
@@ -8,18 +10,41 @@
 #include <fstream>
 #include <map>
 #include <ctime>
+#include <time.h>
 
-#define WINDOW_SIZE 20
-#define NEGATIVE_WINDOW_SIZE 15
-#define BITSIZE 256
+#define WINDOW_SIZE 32
+#define NEGATIVE_WINDOW_SIZE 32
+#define BITSIZE 128
 #define SUBSAMPLING_COEFFICIENT 1e-3
-#define BIT_LEARNING_RATE .8
 #define BITS_PER_BYTE 8
 #define N_WORKERS 1
 #define N_EPOCHS_PER_WORKER 1e9
 #define UNIGRAM_TABLE_SIZE 1e8
 
 using namespace std;
+
+
+////////////////////////////////////////
+//            MISC UTILS              //
+////////////////////////////////////////
+void SetBitAtIndex(char *embedding, int index, int value) {
+    int char_index = index / BITS_PER_BYTE;
+    char mask = (char)1 << (BITS_PER_BYTE-1-index%BITS_PER_BYTE);
+    embedding[char_index] &= ~mask;
+    embedding[char_index] |= value * mask;
+}
+
+int ExtractBitAtIndex(char *embedding, int index) {
+    int char_index = index / BITS_PER_BYTE;
+    return (embedding[char_index] >> (BITS_PER_BYTE-1-index%BITS_PER_BYTE)) & 1;
+}
+
+void PrintBits(char *embedding) {
+    for (int i = 0; i < BITSIZE; i++) {
+	printf("%d", ExtractBitAtIndex(embedding, i));
+    }
+    printf("\n");
+}
 
 /////////////////////////////////////
 //           Vocabulary            //
@@ -33,9 +58,27 @@ struct Vocabulary {
     vector<int> unigram_table;
 
     // Embeddings
-    char *emb1, *emb2;
+    char *emb1;
+
+    // Embeddings weights
+    float *weights;
 };
 typedef struct Vocabulary Vocabulary;
+
+char * WordToBits(Vocabulary *vocab, int word_index, char *emb) {
+    return &emb[word_index*BITSIZE/BITS_PER_BYTE];
+}
+
+void UpdateBits(Vocabulary *v, int word_index) {
+  for (int i = 0; i < BITSIZE; i += BITS_PER_BYTE) {
+    char to_set = 0;
+    for (int j = 0; j < BITS_PER_BYTE; j++) {
+      to_set <<= 1;
+      to_set |= (char)(v->weights[word_index*BITSIZE+i+j] >= .5);
+    }
+    v->emb1[word_index*BITSIZE/BITS_PER_BYTE + i/BITS_PER_BYTE] = to_set;
+  }
+}
 
 // Build vocabulary from text file.
 Vocabulary *CreateVocabulary(const char *filepath) {
@@ -48,7 +91,7 @@ Vocabulary *CreateVocabulary(const char *filepath) {
     vocab->n_unique_words = vocab->n_total_words = 0;
     vocab->word_to_index.reserve(100000);
     vocab->index_to_word.reserve(100000);
-    vocab->emb1 = vocab->emb2 = NULL;
+    vocab->emb1 = NULL;
     vocab->filesize = 0;
 
     // Create hashmaps from words to indices
@@ -74,12 +117,12 @@ Vocabulary *CreateVocabulary(const char *filepath) {
     // Allocate and randomize embeddings
     int nchars = vocab->n_unique_words*BITSIZE/BITS_PER_BYTE;
     vocab->emb1 = new char[nchars];
-    vocab->emb2 = new char[nchars];
-    for (int i = 0; i < nchars; i++) {
-	vocab->emb1[i] = rand();
-	vocab->emb2[i] = rand();
-	//vocab->emb1[i] = 1;
-	//vocab->emb2[i] = 1;
+    vocab->weights = new float[vocab->n_unique_words * BITSIZE];
+    for (int i = 0; i < vocab->n_unique_words; i++) {
+      for (int j = 0; j < BITSIZE; j++) {
+	vocab->weights[i*BITSIZE+j] = ((double) rand() / (RAND_MAX));
+	SetBitAtIndex(WordToBits(vocab, i, vocab->emb1), j, vocab->weights[i*BITSIZE+j] >= .5);
+      }
     }
 
     // Generate negative sampling unigram table.
@@ -118,15 +161,26 @@ int WordToIndex(Vocabulary *vocab, string &word) {
     return vocab->word_to_index[word];
 }
 
-char * WordToBits(Vocabulary *vocab, int word_index, char *emb) {
-    return &emb[word_index*BITSIZE/BITS_PER_BYTE];
-}
-
 // Destroy vocabulary
 void DestroyVocabulary(Vocabulary *vocab) {
+    delete vocab->weights;
     delete vocab->emb1;
-    delete vocab->emb2;
     delete vocab;
+}
+
+void PrintVectorDifference(Vocabulary *v, int first, int second) {
+  char *b1 = WordToBits(v, first, v->emb1);
+  char *b2 = WordToBits(v, second, v->emb1);
+  char diff[BITSIZE];
+  int s_diff = 0;
+  for (int i = 0; i < BITSIZE/BITS_PER_BYTE; i++) {
+    diff[i] = b1[i] ^ b2[i];
+    int popcount = __builtin_popcount((unsigned char)diff[i]);
+    assert(popcount <= 8);
+    s_diff += popcount;
+  }
+  PrintBits(diff);
+  printf("diff: %d\n", s_diff);
 }
 
 /////////////////////////////////////////////////
@@ -162,47 +216,6 @@ Context * CreateContext(Vocabulary *v, int size) {
     return context;
 }
 
-void SetBitAtIndex(char *embedding, int index, int value) {
-    int char_index = index / BITS_PER_BYTE;
-    char mask = 1 << (BITS_PER_BYTE-1-index%BITS_PER_BYTE);
-    embedding[char_index] &= ~mask;
-    embedding[char_index] |= value * mask;
-}
-
-int ExtractBitAtIndex(char *embedding, int index) {
-    int char_index = index / BITS_PER_BYTE;
-    char mask = 1 << (BITS_PER_BYTE-1-index%BITS_PER_BYTE);
-    return (embedding[char_index] & mask) != 0;
-}
-
-void PrintBits(char *embedding) {
-    for (int i = 0; i < BITSIZE; i++) {
-	printf("%d", ExtractBitAtIndex(embedding, i));
-    }
-    printf("\n");
-}
-
-void ExtractBitcountsFromEmbedding(char *embedding, char *output) {
-    for (int i = 0; i < BITSIZE; i++) {
-	output[i] = ExtractBitAtIndex(embedding, i);
-    }
-}
-
-// output -= input
-void EmbeddingSubtract(char *output, char *input) {
-    for (int i = 0; i < BITSIZE; i++) {
-	output[i] -= input[i];
-	assert(output[i] >= 0);
-    }
-}
-
-// output += input
-void EmbeddingAdd(char *output, char *input) {
-    for (int i = 0; i < BITSIZE; i++) {
-	output[i] += input[i];
-    }
-}
-
 int CurrentWordOfContext(Context *c) {
     return c->word_ids[c->counter];
 }
@@ -217,20 +230,14 @@ char * CurrentWordBits(Context *c) {
 
 void AddWordToContext(Context *c, int word_id, char *embedding) {
     char embedding_bitcounts[BITSIZE];
-
-    if (c->did_wrap) {
-	// Subtract current word from bitcounts
-	ExtractBitcountsFromEmbedding(c->context[c->counter], embedding_bitcounts);
-	EmbeddingSubtract(c->bitcounts, embedding_bitcounts);
+    for (int i = 0; i < BITSIZE; i++) {
+      embedding_bitcounts[i] = ExtractBitAtIndex(embedding, i);
+      c->bitcounts[i] += embedding_bitcounts[i] -
+	ExtractBitAtIndex(c->context[c->counter], i) * c->did_wrap;
     }
-
-    // Add new word to bitcounts
-    ExtractBitcountsFromEmbedding(embedding, embedding_bitcounts);
-    EmbeddingAdd(c->bitcounts, embedding_bitcounts);
-
+  
     // Update counters
     c->word_ids[c->counter] = word_id;
-    //c->context[c->counter++] = embedding;
     memcpy(c->context[c->counter++],
 	   embedding,
 	   sizeof(char) * BITSIZE / BITS_PER_BYTE);
@@ -246,7 +253,6 @@ void DestroyContext(Context *c) {
     delete c;
 }
 
-////////////////////////////////////////
 
 // Worker train function
 void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
@@ -258,10 +264,9 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
     ifstream fin(filepath);
     fin.seekg(seek_pos);
 
-    // Embeddings (always read from emb1, write to emb2. Swap periodically.)
-    char *emb1, *emb2;
+    // Embeddings 
+    char *emb1;
     emb1 = vocab->emb1;
-    emb2 = vocab->emb2;
 
     // Get rid of first string (which might've been cut off)
     string word;
@@ -292,31 +297,72 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
     double negative_running_loss = 0;
     time_t tstart = time(0);
     while (n_epochs_processed != N_EPOCHS_PER_WORKER) {
+      	if (words_processed % 500000 == 0) {
+	    time_t tcur = time(0);
+	    double elapsed = difftime(tcur, tstart);
+	    if (elapsed >= 0) {
+		printf("- %f words/sec (epoch %d) (neg loss %lf)\n",
+		       words_processed/elapsed, n_epochs_processed+1,
+		       negative_running_loss / 500000 / BITSIZE);
+	    }
+	    
+	    negative_running_loss = 0;
+
+	    int i1 = vocab->word_to_index["one"];
+	    int i2 = vocab->word_to_index["two"];
+	    int i3 = vocab->word_to_index["dog"];
+	    int i4 = vocab->word_to_index["three"];
+	    PrintVectorDifference(vocab, i1, i2);
+	    PrintVectorDifference(vocab, i1, i3);
+	    PrintVectorDifference(vocab, i1, i4);
+	    PrintVectorDifference(vocab, i3, i4);
+	    //int print_word_index = center_word_index;
+	    //int print_word_index = vocab->word_to_index["man"];
+	    //printf("%s: \n", vocab->index_to_word[print_word_index].c_str());
+	    //PrintBits(WordToBits(vocab, print_word_index, emb1));
+	    //print_word_index = vocab->word_to_index["woman"];
+	    //printf("%s: \n", vocab->index_to_word[print_word_index].c_str());
+	    //PrintBits(WordToBits(vocab, print_word_index, emb1));
+	    //print_word_index = vocab->word_to_index["king"];
+	    //printf("%s: \n", vocab->index_to_word[print_word_index].c_str());
+	    //PrintBits(WordToBits(vocab, print_word_index, emb1));
+	    //print_word_index = vocab->word_to_index["queen"];
+	    //printf("%s: \n", vocab->index_to_word[print_word_index].c_str());
+	    //PrintBits(WordToBits(vocab, print_word_index, emb1));
+	}
 
 	// Update center word in positive context
 	int center_word_index = CenterWordOfContext(positive_context);
-	char *to_update = WordToBits(vocab, center_word_index, emb2);
-	//if (n_epochs_processed == 500 && Keep(vocab, center_word_index)) {
-	//printf("%s\n", vocab->index_to_word[center_word_index].c_str());
-	//PrintBits(to_update);
-	//}
-	for (int i = 0; i < BITSIZE; i++) {
-
+	for (int i = 0; i < BITSIZE; i += BITS_PER_BYTE) {
+	  char cur_byte = CurrentWordBits(positive_context)[i/BITS_PER_BYTE];
+	  unsigned char mask = 1 << (BITS_PER_BYTE-1);
+	  for (int k = 0; k < BITS_PER_BYTE; k++) {
+	    
 	    // Calculate counts of 1s for this bit
-	    int self_count = ExtractBitAtIndex(CurrentWordBits(positive_context), i);
-	    int positive_counts = positive_context->bitcounts[i];
-	    int negative_counts = negative_context->bitcounts[i];
-	    //printf("%d %d\n", positive_counts, negative_counts);
-	    int weight = positive_counts + (NEGATIVE_WINDOW_SIZE-negative_counts) - self_count;
-
+	    int self_count = (cur_byte & mask) != 0;
+	    mask >>= 1;
+	    int positive_counts = positive_context->bitcounts[i+k];
+	    int negative_counts = negative_context->bitcounts[i+k];
+	    double weight = positive_counts/(double)WINDOW_SIZE - self_count/(double)WINDOW_SIZE
+	      + (NEGATIVE_WINDOW_SIZE-negative_counts)/(double)NEGATIVE_WINDOW_SIZE;
+	    
 	    // Calculate loss
-	    double neg_loss = (self_count * positive_counts) + (1-self_count) * (WINDOW_SIZE-positive_counts)
-		+ (self_count * (NEGATIVE_WINDOW_SIZE - negative_counts)) + (1-self_count) * (negative_counts);
-	    negative_running_loss += neg_loss / (double)(WINDOW_SIZE + NEGATIVE_WINDOW_SIZE);
+	    double neg_loss =
+	      ((self_count * positive_counts) +
+	       (1-self_count) * (WINDOW_SIZE-positive_counts)) / (double)WINDOW_SIZE +
+	      ((self_count * (NEGATIVE_WINDOW_SIZE - negative_counts)) +
+	       (1-self_count) * (negative_counts)) / (double)NEGATIVE_WINDOW_SIZE;
+	    negative_running_loss += neg_loss;
+
+	    // Divide weight by 2 (half of the gradient comes from positive context, half from negative)
+	    double norm_weight = weight / 2;
+	    double grad = norm_weight - .5;
+	    vocab->weights[center_word_index*BITSIZE + i+k] += .1 * grad;
 
 	    // Assertions
 	    assert(positive_counts >= self_count);
 	    assert(negative_counts <= NEGATIVE_WINDOW_SIZE);
+	    assert(positive_counts <= WINDOW_SIZE);
 	    assert(negative_counts >= 0);
 	    assert(positive_counts >= 0);
 	    assert(self_count == 0 || self_count == 1);
@@ -324,24 +370,14 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	    assert(NEGATIVE_WINDOW_SIZE >= negative_counts);
 	    assert(positive_counts <= WINDOW_SIZE);
 	    assert(neg_loss <= (WINDOW_SIZE + NEGATIVE_WINDOW_SIZE));
-
-	    // Maximum weight is WINDOW_SIZE + NEGATIVE_WINDOW_SIZE (all of them are the same value)
-	    double norm_weight = weight / (double)(WINDOW_SIZE + NEGATIVE_WINDOW_SIZE);
-	    if (norm_weight > BIT_LEARNING_RATE) {
-		// Set to 1
-		SetBitAtIndex(to_update, i, 1);
-	    }
-	    else if (norm_weight < 1-BIT_LEARNING_RATE) {
-		// Set to 0
-		SetBitAtIndex(to_update, i, 0);
-	    }
+	    assert(weight < (WINDOW_SIZE+NEGATIVE_WINDOW_SIZE));
+	    assert(norm_weight >= 0 && norm_weight <= 1);
+	  }
 	}
 
 	// Write old word context to memory.
 	int to_write_word_index = CurrentWordOfContext(positive_context);
-	char *to_write = WordToBits(vocab, to_write_word_index, emb2);
-	char *dst = WordToBits(vocab, to_write_word_index, emb1);
-	memcpy(dst, to_write, sizeof(char) * BITSIZE / BITS_PER_BYTE);
+	UpdateBits(vocab, center_word_index);
 
 	// Add Word to context for both positive and negative contexts w/ subsampling.
 	int positive_word_index = -1;
@@ -355,7 +391,7 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	}
 	char *positive_bits = WordToBits(vocab, positive_word_index, emb1);
 	AddWordToContext(positive_context, positive_word_index, positive_bits);
-
+	
 	int negative_word_index = -1;
 	while (!Keep(vocab, negative_word_index)) {
 	    negative_word_index = NegativeSample(vocab);
@@ -370,16 +406,6 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	  n_epochs_processed++;
 	}
 
-	if (words_processed % 100000 == 0) {
-	    time_t tcur = time(0);
-	    double elapsed = difftime(tcur, tstart);
-	    if (elapsed != 0) {
-		printf("- %f words/sec (epoch %d) (neg loss %lf)\n",
-		       words_processed/elapsed, n_epochs_processed+1,
-		       negative_running_loss / 100000 / BITSIZE);
-	    }
-	    negative_running_loss = 0;
-	}
 	words_processed++;
     }
 
@@ -403,6 +429,7 @@ void Train(const char *filepath) {
 }
 
 int main(int argc, char *argv[]) {
+    srand(time(NULL));
     if (argc != 2) {
 	printf("Usage: ./word2bits input_file_path\n");
 	exit(0);
