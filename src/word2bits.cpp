@@ -3,6 +3,7 @@
 #include <iostream>
 #include <math.h>
 #include <vector>
+#include <immintrin.h>
 #include <assert.h>
 #include <string.h>
 #include <unistd.h>
@@ -12,7 +13,7 @@
 #include <ctime>
 #include <time.h>
 
-#define WINDOW_SIZE 32
+#define WINDOW_SIZE 16
 #define NEGATIVE_WINDOW_SIZE 32
 #define BITSIZE 128
 #define SUBSAMPLING_COEFFICIENT 1e-3
@@ -20,13 +21,22 @@
 #define N_WORKERS 1
 #define N_EPOCHS_PER_WORKER 1e9
 #define UNIGRAM_TABLE_SIZE 1e8
+#define PRINT_INTERVAL 1000000
 
 using namespace std;
-
 
 ////////////////////////////////////////
 //            MISC UTILS              //
 ////////////////////////////////////////
+
+unsigned long long SwapLong(unsigned long long X) {
+  uint64_t x = (uint64_t) X;
+  x = (x & 0x00000000FFFFFFFF) << 32 | (x & 0xFFFFFFFF00000000) >> 32;
+  x = (x & 0x0000FFFF0000FFFF) << 16 | (x & 0xFFFF0000FFFF0000) >> 16;
+  x = (x & 0x00FF00FF00FF00FF) << 8  | (x & 0xFF00FF00FF00FF00) >> 8;
+  return x;
+}
+
 void SetBitAtIndex(char *embedding, int index, int value) {
     int char_index = index / BITS_PER_BYTE;
     char mask = (char)1 << (BITS_PER_BYTE-1-index%BITS_PER_BYTE);
@@ -50,7 +60,8 @@ void PrintBits(char *embedding) {
 //           Vocabulary            //
 /////////////////////////////////////
 struct Vocabulary {
-    unsigned long n_unique_words, n_total_words;
+    unsigned long n_total_words;
+    int n_unique_words;
     unordered_map<string, int> word_to_index;
     unordered_map<int, string> index_to_word;
     unordered_map<int, int> word_index_to_count;
@@ -120,7 +131,7 @@ Vocabulary *CreateVocabulary(const char *filepath) {
     vocab->weights = new float[vocab->n_unique_words * BITSIZE];
     for (int i = 0; i < vocab->n_unique_words; i++) {
       for (int j = 0; j < BITSIZE; j++) {
-	vocab->weights[i*BITSIZE+j] = ((double) rand() / (RAND_MAX));
+	vocab->weights[i*BITSIZE+j] = ((float) rand() / (RAND_MAX));
 	SetBitAtIndex(WordToBits(vocab, i, vocab->emb1), j, vocab->weights[i*BITSIZE+j] >= .5);
       }
     }
@@ -128,14 +139,14 @@ Vocabulary *CreateVocabulary(const char *filepath) {
     // Generate negative sampling unigram table.
     vocab->unigram_table.reserve(UNIGRAM_TABLE_SIZE);
     for (int i = 0; i < vocab->n_unique_words; i++) {
-	double weight = vocab->word_index_to_count[i] / (double)vocab->n_total_words;
+	float weight = vocab->word_index_to_count[i] / (float)vocab->n_total_words;
 	int n_occ = weight * UNIGRAM_TABLE_SIZE;
 	for (int j = 0; j < n_occ; j++) {
 	    vocab->unigram_table.push_back(i);
 	}
     }
 
-    printf("- Vocabulary size : %ld\n", vocab->n_unique_words);
+    printf("- Vocabulary size : %d\n", vocab->n_unique_words);
     printf("- File size : %ld bytes\n", vocab->filesize);
 
     file.close();
@@ -148,9 +159,9 @@ Vocabulary *CreateVocabulary(const char *filepath) {
 
 int Keep(Vocabulary *v, int word) {
     if (word < 0) return 0;
-    double z_w = v->word_index_to_count[word] / (double)v->n_total_words;
-    double p_w = (sqrt(z_w/(double).001) + 1) * (.001 / z_w);
-    return ((double) rand() / (RAND_MAX)) <= p_w;
+    float z_w = v->word_index_to_count[word] / (float)v->n_total_words;
+    float p_w = (sqrt(z_w/(float).001) + 1) * (.001 / z_w);
+    return ((float) rand() / (RAND_MAX)) <= p_w;
 }
 
 int NegativeSample(Vocabulary *v) {
@@ -229,13 +240,26 @@ char * CurrentWordBits(Context *c) {
 }
 
 void AddWordToContext(Context *c, int word_id, char *embedding) {
-    char embedding_bitcounts[BITSIZE];
-    for (int i = 0; i < BITSIZE; i++) {
-      embedding_bitcounts[i] = ExtractBitAtIndex(embedding, i);
-      c->bitcounts[i] += embedding_bitcounts[i] -
-	ExtractBitAtIndex(c->context[c->counter], i) * c->did_wrap;
+
+
+#ifdef BMI_ENABLED
+    unsigned long long *bitcounts_index = (unsigned long long *)c->bitcounts;
+    unsigned long long mask = 0x0101010101010101ULL;    
+    for (int i = 0; i < BITSIZE; i += BITS_PER_BYTE) {      
+      unsigned long long to_add = SwapLong(_pdep_u64((unsigned long long)embedding[i/BITS_PER_BYTE],
+						     mask));
+      unsigned long long to_sub = SwapLong(_pdep_u64((unsigned long long )c->context[c->counter][i/BITS_PER_BYTE],
+						     mask));
+      *bitcounts_index = *bitcounts_index - to_sub * (unsigned long long )c->did_wrap + to_add;      
+      bitcounts_index++;
     }
-  
+#else        
+    for (int i = 0; i < BITSIZE; i++) {
+      c->bitcounts[i] += ExtractBitAtIndex(embedding, i) - 
+      (ExtractBitAtIndex(c->context[c->counter], i) & c->did_wrap);
+    }
+#endif    
+    
     // Update counters
     c->word_ids[c->counter] = word_id;
     memcpy(c->context[c->counter++],
@@ -294,16 +318,16 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 
     int words_processed = 0;
     int n_epochs_processed = 0;
-    double negative_running_loss = 0;
+    float negative_running_loss = 0;
     time_t tstart = time(0);
     while (n_epochs_processed != N_EPOCHS_PER_WORKER) {
-      	if (words_processed % 500000 == 0) {
+      	if (words_processed++ % PRINT_INTERVAL == 0) {
 	    time_t tcur = time(0);
-	    double elapsed = difftime(tcur, tstart);
+	    float elapsed = difftime(tcur, tstart);
 	    if (elapsed >= 0) {
 		printf("- %f words/sec (epoch %d) (neg loss %lf)\n",
 		       words_processed/elapsed, n_epochs_processed+1,
-		       negative_running_loss / 500000 / BITSIZE);
+		       negative_running_loss / PRINT_INTERVAL / BITSIZE);
 	    }
 	    
 	    negative_running_loss = 0;
@@ -331,32 +355,42 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	    //PrintBits(WordToBits(vocab, print_word_index, emb1));
 	}
 
+	// Reset file pointer if read to end.
+	if (fin.eof()) {
+	  fin.close();
+	  fin.open(filepath);
+	  n_epochs_processed++;
+	}
+
 	// Update center word in positive context
 	int center_word_index = CenterWordOfContext(positive_context);
 	for (int i = 0; i < BITSIZE; i += BITS_PER_BYTE) {
 	  char cur_byte = CurrentWordBits(positive_context)[i/BITS_PER_BYTE];
 	  unsigned char mask = 1 << (BITS_PER_BYTE-1);
-	  for (int k = 0; k < BITS_PER_BYTE; k++) {
+	  for (char k = 0; k < BITS_PER_BYTE; k++) {
 	    
 	    // Calculate counts of 1s for this bit
 	    int self_count = (cur_byte & mask) != 0;
 	    mask >>= 1;
 	    int positive_counts = positive_context->bitcounts[i+k];
 	    int negative_counts = negative_context->bitcounts[i+k];
-	    double weight = positive_counts/(double)WINDOW_SIZE - self_count/(double)WINDOW_SIZE
-	      + (NEGATIVE_WINDOW_SIZE-negative_counts)/(double)NEGATIVE_WINDOW_SIZE;
+	    float weight = positive_counts/(float)WINDOW_SIZE - self_count/(float)WINDOW_SIZE
+	      + (NEGATIVE_WINDOW_SIZE-negative_counts)/(float)NEGATIVE_WINDOW_SIZE;
 	    
 	    // Calculate loss
-	    double neg_loss =
+	    float neg_loss = 0;
+#ifndef NDEBUG
+	    neg_loss =
 	      ((self_count * positive_counts) +
-	       (1-self_count) * (WINDOW_SIZE-positive_counts)) / (double)WINDOW_SIZE +
+	       (1-self_count) * (WINDOW_SIZE-positive_counts)) / (float)WINDOW_SIZE +
 	      ((self_count * (NEGATIVE_WINDOW_SIZE - negative_counts)) +
-	       (1-self_count) * (negative_counts)) / (double)NEGATIVE_WINDOW_SIZE;
-	    negative_running_loss += neg_loss;
+	       (1-self_count) * (negative_counts)) / (float)NEGATIVE_WINDOW_SIZE;
+	       negative_running_loss += neg_loss;
+#endif
 
 	    // Divide weight by 2 (half of the gradient comes from positive context, half from negative)
-	    double norm_weight = weight / 2;
-	    double grad = norm_weight - .5;
+	    float norm_weight = weight / 2;
+	    float grad = norm_weight - .5;
 	    vocab->weights[center_word_index*BITSIZE + i+k] += .1 * grad;
 
 	    // Assertions
@@ -376,7 +410,6 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	}
 
 	// Write old word context to memory.
-	int to_write_word_index = CurrentWordOfContext(positive_context);
 	UpdateBits(vocab, center_word_index);
 
 	// Add Word to context for both positive and negative contexts w/ subsampling.
@@ -398,15 +431,6 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	}
 	char *negative_bits = WordToBits(vocab, negative_word_index, emb1);
 	AddWordToContext(negative_context, negative_word_index, negative_bits);
-
-	// Reset file pointer if read to end.
-	if (fin.eof()) {
-	  fin.close();
-	  fin.open(filepath);
-	  n_epochs_processed++;
-	}
-
-	words_processed++;
     }
 
     fin.close();
