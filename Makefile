@@ -1,7 +1,9 @@
 CC=g++
-CFLAGS=-Ofast -march=native -std=c++11 -Wall -pg -fprofile-arcs -ftest-coverage 
+CFLAGS=-Ofast -march=native -std=c++11 -Wall
 
-word2bits:
-	$(CC) src/word2bits.cpp $(CFLAGS) -o word2bits -DBMI_ENABLED
+accuracy:
+	$(CC) src/compute-accuracy.c $(CFLAGS) -o compute_accuracy
+word2vec:
+	$(CC) src/word2vec.c $(CFLAGS) -o word2vec
 clean:
 	rm -f word2bits
