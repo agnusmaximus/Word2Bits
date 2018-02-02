@@ -44,16 +44,21 @@ int evaluate_analogy(Vocabulary *v, const string &analogy, int debug_print) {
   char *v_c = WordToBits(v, v->word_to_index[c], v->emb1);
   char *v_d = WordToBits(v, v->word_to_index[d], v->emb1);
 
-  char diff_v_a_v_b[BITSIZE / BITS_PER_BYTE];
-  char v_c_plus_diff[BITSIZE / BITS_PER_BYTE];
-  XOR(v_a, v_b, diff_v_a_v_b);
-  XOR(v_c, diff_v_a_v_b, v_c_plus_diff);
+  //char diff_v_a_v_b[BITSIZE / BITS_PER_BYTE];
+  //char v_c_plus_diff[BITSIZE / BITS_PER_BYTE];
+  //SUB(v_b, v_a, diff_v_a_v_b);
+  //ADD(v_c, diff_v_a_v_b, v_c_plus_diff);
+  //XOR(v_a, v_b, diff_v_a_v_b);
+  //XOR(v_c, diff_v_a_v_b, v_c_plus_diff);
+  char expected[BITSIZE/BITS_PER_BYTE];
+  ANALOGY(v_a, v_b, v_c, v_d, expected);
 
   unsigned int min_score = ~0;
   int best_index = -1;
   for (int i = 0; i < v->n_unique_words; i++) {
+    if (i == v->word_to_index[c]) continue;
     char *cur_bits = WordToBits(v, i, v->emb1);
-    unsigned int score = (unsigned int)HammingDistance(cur_bits, v_c_plus_diff);
+    unsigned int score = (unsigned int)HammingDistance(cur_bits, expected);
     if (score < min_score) {
       min_score = score;
       best_index = i;
@@ -63,25 +68,15 @@ int evaluate_analogy(Vocabulary *v, const string &analogy, int debug_print) {
   // For debugging
   //if (debug_print) {
   if (analogy.find("England English Japan Japanese") != string::npos) {
-    int true_word_distance_score = HammingDistance(v_c_plus_diff, v_d);
+    int true_word_distance_score = HammingDistance(expected, v_d);
     cout << "Expected:" << a << " : " << b << " | " << c << " : " << d << endl;
-    cout << "Got     :" << a << " : " << b << " | " << c << " : " << v->index_to_word[best_index] <<
-      endl;
-
-    char diff_v_c_v_d[BITSIZE / BITS_PER_BYTE];
-    XOR(v_c, v_d, diff_v_c_v_d);
-    cout << "Calculated vector diffs:" << endl;    
-    PrintBits(diff_v_a_v_b);
-    PrintBits(diff_v_c_v_d);
-    cout << "Vectors: " << endl;
+    cout << "Got     :" << a << " : " << b << " | " << c << " : " << v->index_to_word[best_index] << endl;
+    printf("v_a v_b v_c v_d\n");
     PrintBits(v_a);
     PrintBits(v_b);
     PrintBits(v_c);
     PrintBits(v_d);
-    printf("--\n");
-    PrintBits(v_c_plus_diff);
-    PrintBits(WordToBits(v, best_index, v->emb1));
-    cout << "Score: (true)" << true_word_distance_score << " vs " << min_score << endl;
+    cout << "Score: (expected)" << true_word_distance_score << " vs " << min_score << endl;
   }
   
   return best_index == v->word_to_index[d];

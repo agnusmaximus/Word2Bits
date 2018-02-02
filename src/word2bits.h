@@ -15,8 +15,8 @@
 #include <time.h>
 
 #define WINDOW_SIZE 10
-#define NEGATIVE_WINDOW_SIZE 10
-#define BITSIZE 64
+#define NEGATIVE_WINDOW_SIZE 100
+#define BITSIZE 128
 #define LEARNING_RATE .05
 #define SUBSAMPLING_COEFFICIENT 1e-3
 #define BITS_PER_BYTE 8
@@ -78,6 +78,36 @@ void XOR(char *v1, char *v2, char *out) {
     out[i] = v1[i] ^ v2[i];
 }
 
+void SUB(char *v1, char *v2, char *out) {
+  for (int i = 0; i < BITSIZE; i++) {
+    int b1 = ExtractBitAtIndex(v1, i);
+    int b2 = ExtractBitAtIndex(v2, i);
+    int res = b1 - b2;
+    SetBitAtIndex(out, i, res < 0 ? 0 : res);
+  }
+}
+
+void ANALOGY(char *v1, char *v2, char *v3, char *v4, char *out) {
+  // v1:v2, v3:v4
+  for (int i = 0; i < BITSIZE; i++) {
+    int a1 = ExtractBitAtIndex(v1, i);
+    int a2 = ExtractBitAtIndex(v2, i);
+    int a3 = ExtractBitAtIndex(v3, i);
+    int diff = a2 - a1;
+    int expected = min(1, max(0, a3 + diff));
+    SetBitAtIndex(out, i, expected);
+  }
+}
+
+void ADD(char *v1, char *v2, char *out) {
+  for (int i = 0; i < BITSIZE; i++) {
+    int b1 = ExtractBitAtIndex(v1, i);
+    int b2 = ExtractBitAtIndex(v2, i);
+    int res = b1 + b2;
+    SetBitAtIndex(out, i, res > 1 ? 1 : res);
+  }
+}
+
 int HammingDistance(char *v1, char *v2) {
   int s_diff = 0;
   for (int i = 0; i < BITSIZE/BITS_PER_BYTE; i++) 
@@ -116,7 +146,7 @@ void UpdateBits(Vocabulary *v, int word_index) {
     char to_set = 0;
     for (int j = 0; j < BITS_PER_BYTE; j++) {
       to_set <<= 1;
-      to_set |= (char)(v->weights[word_index*BITSIZE+i+j] >= .5);
+      to_set |= (char)(v->weights[word_index*BITSIZE+i+j] > 0);
     }
     v->emb1[word_index*BITSIZE/BITS_PER_BYTE + i/BITS_PER_BYTE] = to_set;
   }
@@ -162,8 +192,8 @@ Vocabulary *CreateVocabulary(const char *filepath) {
     vocab->weights = (float *)malloc(sizeof(float) * (vocab->n_unique_words * BITSIZE));;
     for (int i = 0; i < vocab->n_unique_words; i++) {
       for (int j = 0; j < BITSIZE; j++) {
-	vocab->weights[i*BITSIZE+j] = ((float)fast_rand() / (FAST_RAND_MAX));
-	SetBitAtIndex(WordToBits(vocab, i, vocab->emb1), j, vocab->weights[i*BITSIZE+j] >= .5);
+	vocab->weights[i*BITSIZE+j] = ((float)fast_rand() / (FAST_RAND_MAX)) - .5;
+	SetBitAtIndex(WordToBits(vocab, i, vocab->emb1), j, vocab->weights[i*BITSIZE+j] > 0);
       }
     }
 

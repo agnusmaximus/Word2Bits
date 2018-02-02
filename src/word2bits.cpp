@@ -58,6 +58,7 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
     int words_processed = 0;
     int n_epochs_processed = 0;
     float negative_running_loss = 0;
+    float learning_rate = LEARNING_RATE;
     time_t tstart = time(0);
     while (n_epochs_processed != N_EPOCHS_PER_WORKER) {
       	if (words_processed++ % PRINT_INTERVAL == 0) {
@@ -109,8 +110,9 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	  fin.close();
 	  fin.open(filepath);
 	  n_epochs_processed++;
+	  //learning_rate *= .5;
 
-	  if (n_epochs_processed % 2 == 0)
+	  if (n_epochs_processed % 10 == 0)
 	    evaluate_google_analogies(vocab);
 	}
 
@@ -118,6 +120,7 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	int center_word_index = CenterWordOfContext(positive_context);
 	for (int i = 0; i < BITSIZE; i += BITS_PER_BYTE) {
 	  char cur_byte = CurrentWordBits(positive_context)[i/BITS_PER_BYTE];
+	  int neg_word_index = CenterWordOfContext(negative_context);
 	  unsigned char mask = 1 << (BITS_PER_BYTE-1);
 	  for (char k = 0; k < BITS_PER_BYTE; k++) {
 	    
@@ -126,8 +129,21 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	    mask >>= 1;
 	    int positive_counts = positive_context->bitcounts[i+k];
 	    int negative_counts = negative_context->bitcounts[i+k];
-	    float weight = positive_counts/(float)WINDOW_SIZE - self_count/(float)WINDOW_SIZE
-	      + (NEGATIVE_WINDOW_SIZE-negative_counts)/(float)NEGATIVE_WINDOW_SIZE;
+	    //float weight = positive_counts/(float)WINDOW_SIZE - self_count/(float)WINDOW_SIZE
+	    //- (negative_counts)/(float)NEGATIVE_WINDOW_SIZE;
+	    float w_pos = positive_counts/(float)WINDOW_SIZE - self_count/(float)WINDOW_SIZE
+	      - (negative_counts)/(float)NEGATIVE_WINDOW_SIZE;
+	    float w_neg = (WINDOW_SIZE - positive_counts + self_count)/(float)WINDOW_SIZE
+	      - (NEGATIVE_WINDOW_SIZE - negative_counts)/(float)NEGATIVE_WINDOW_SIZE;
+	    float weight = w_pos - w_neg;
+
+	    assert(positive_counts <= WINDOW_SIZE);
+	    assert(negative_counts <= NEGATIVE_WINDOW_SIZE);
+	    assert(w_pos >= -1 && w_pos <= 1);
+	    assert(WINDOW_SIZE - positive_counts + self_count >= 0);
+	    assert(WINDOW_SIZE - positive_counts + self_count <= WINDOW_SIZE);
+	    assert(w_neg >= -1 && w_neg <= 1);
+	    assert(weight >= -2 && weight <= 2);
 	    
 	    // Calculate loss
 	    float neg_loss = 0;
@@ -141,12 +157,21 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 #endif
 
 	    // Divide weight by 2 (half of the gradient comes from positive context, half from negative)
-	       //float norm_weight = weight / 2;
-            float norm_weight = weight / 2;
-	    float grad = norm_weight - .5;
-	    vocab->weights[center_word_index*BITSIZE + i+k] += LEARNING_RATE * grad;
+	    //float norm_weight = weight / 2;
+            float norm_weight = weight/2;
+            //float target = weight/2;   
+	    float grad = norm_weight - vocab->weights[center_word_index*BITSIZE +i+k];
+	    vocab->weights[center_word_index*BITSIZE + i+k] += learning_rate * grad;
+	    if (rand() % 1000000 == 0) {
+	      //printf("%f\n", vocab->weights[center_word_index*BITSIZE+i+k]);
+	      //printf("W: %f\n", norm_weight);
+	    }
+	    //vocab->weights[neg_word_index*BITSIZE + i+k] -= LEARNING_RATE * grad;
+	    //assert(vocab->weights[center_word_index*BITSIZE + i+k] >= -1 &&
+	    //vocab->weights[center_word_index*BITSIZE + i+k] <= 1);
+	    
 	    //vocab->weights[center_word_index*BITSIZE + i+k] += (LEARNING_RATE/10 * ((float)fast_rand() / (FAST_RAND_MAX) - .5));
-	    //vocab->weights[center_word_index*BITSIZE + i+k] = min((float)1, max((float)0,vocab->weights[center_word_index*BITSIZE + i+k]));	    
+	    //vocab->weights[center_word_index*BITSIZE + i+k] = min((float)1, max((float)-1,vocab->weights[center_word_index*BITSIZE + i+k]));	    
 	    // Assertions
 	    assert(positive_counts >= self_count);
 	    assert(negative_counts <= NEGATIVE_WINDOW_SIZE);
@@ -154,13 +179,14 @@ void TrainWorker(const char *filepath, int id, Vocabulary *vocab) {
 	    assert(negative_counts >= 0);
 	    assert(positive_counts >= 0);
 	    assert(self_count == 0 || self_count == 1);
-	    assert(weight >= 0);
+	    assert(weight/2 >= -1);
 	    assert(NEGATIVE_WINDOW_SIZE >= negative_counts);
 	    assert(positive_counts <= WINDOW_SIZE);
 	    assert(neg_loss <= (WINDOW_SIZE + NEGATIVE_WINDOW_SIZE));
 	    assert(weight < (WINDOW_SIZE+NEGATIVE_WINDOW_SIZE));
-	    assert(norm_weight >= 0 && norm_weight <= 1);
+	    assert(norm_weight >= -1 && norm_weight <= 1);
 	  }
+	  //UpdateBits(vocab, neg_word_index);
 	}
 
 	// Write old word context to memory.
