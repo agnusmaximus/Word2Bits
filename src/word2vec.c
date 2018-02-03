@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <math.h>
 #include <ctime>
+#include "word2bits.h"
 //#include <pthread.h>
 
 #define MAX_STRING 100
@@ -55,6 +56,7 @@ struct vocab_word {
  */
 char train_file[MAX_STRING], output_file[MAX_STRING];
 char save_vocab_file[MAX_STRING], read_vocab_file[MAX_STRING];
+Vocabulary *v;
 
 /*
  * ======== vocab ========
@@ -638,7 +640,7 @@ void *TrainModelThread(void *id) {
    */
   long long a, b, d, cw, word, last_word, sentence_length = 0, sentence_position = 0;
   long long word_count = 0, last_word_count = 0, sen[MAX_SENTENCE_LENGTH + 1];
-  long long l1, l2, c, target, label, local_iter = iter;
+  long long l1, l2, c, target, label, local_iter = 1;
   unsigned long long next_random = (long long)id;
   real f, g;
   clock_t now;
@@ -680,8 +682,12 @@ void *TrainModelThread(void *id) {
       while (1) {
         // Read the next word from the training data and lookup its index in 
         // the vocab table. 'word' is the word's vocab index.
-        word = ReadWordIndex(fi);
-        
+        //word = ReadWordIndex(fi);
+	char wordarr[MAX_STRING];
+	ReadWord(wordarr, fi);
+	string str(wordarr);
+	word = v->word_to_index[str];	
+	
         if (feof(fi)) break;
         
         // If the word doesn't exist in the vocabulary, skip it.
@@ -737,20 +743,26 @@ void *TrainModelThread(void *id) {
          * 'sentence'. This means the discarded word is neither used as an 
          * input word or a context word for other inputs.
          */
+
         if (sample > 0) {
           // Calculate the probability of keeping 'word'.
-          real ran = (sqrt(vocab[word].cn / (sample * train_words)) + 1) * (sample * train_words) / vocab[word].cn;
+          //real ran = (sqrt(vocab[word].cn / (sample * train_words)) + 1) * (sample * train_words) / vocab[word].cn;
           
           // Generate a random number.
           // The multiplier is 25.xxx billion, so 'next_random' is a 64-bit integer.
-          next_random = next_random * (unsigned long long)25214903917 + 11;
+          //next_random = next_random * (unsigned long long)25214903917 + 11;
 
           // If the probability is less than a random fraction, discard the word.
           //
           // (next_random & 0xFFFF) extracts just the lower 16 bits of the 
           // random number. Dividing this by 65536 (2^16) gives us a fraction
           // between 0 and 1. So the code is just generating a random fraction.
-          if (ran < (next_random & 0xFFFF) / (real)65536) continue;
+          //if (ran < (next_random & 0xFFFF) / (real)65536) continue;
+
+	  double ran = (sqrt((double)v->word_index_to_count[word] / (SUBSAMPLING_COEFFICIENT * v->n_total_words)) + 1) *
+	    (SUBSAMPLING_COEFFICIENT * v->n_total_words) / (double)v->word_index_to_count[word];
+          next_random = next_random * (unsigned long long)25214903917 + 11;
+          if (ran < (next_random & 0xFFFF) / (double)65536) continue;
         }
         
         // If we kept the word, add it to the sentence.
@@ -764,6 +776,7 @@ void *TrainModelThread(void *id) {
       sentence_position = 0;
     }
     if (feof(fi) || (word_count > train_words / num_threads)) {
+      printf("YOOYOYOYOOYOY\n");
       word_count_actual += word_count - last_word_count;
       local_iter--;
       if (local_iter == 0) break;
@@ -803,26 +816,14 @@ void *TrainModelThread(void *id) {
         if (c >= sentence_length) continue;
         last_word = sen[c];
         if (last_word == -1) continue;
-        for (c = 0; c < layer1_size; c++) neu1[c] += syn0[c + last_word * layer1_size];
+        //for (c = 0; c < layer1_size; c++) neu1[c] += syn0[c + last_word * layer1_size];
+	
+	// YO:
+	for (c = 0; c < layer1_size; c++) neu1[c] += v->emb[c + last_word * layer1_size];
         cw++;
       }
       if (cw) {
         for (c = 0; c < layer1_size; c++) neu1[c] /= cw;
-        if (hs) for (d = 0; d < vocab[word].codelen; d++) {
-          f = 0;
-          l2 = vocab[word].point[d] * layer1_size;
-          // Propagate hidden -> output
-          for (c = 0; c < layer1_size; c++) f += neu1[c] * syn1[c + l2];
-          if (f <= -MAX_EXP) continue;
-          else if (f >= MAX_EXP) continue;
-          else f = expTable[(int)((f + MAX_EXP) * (EXP_TABLE_SIZE / MAX_EXP / 2))];
-          // 'g' is the gradient multiplied by the learning rate
-          g = (1 - vocab[word].code[d] - f) * alpha;
-          // Propagate errors output -> hidden
-          for (c = 0; c < layer1_size; c++) neu1e[c] += g * syn1[c + l2];
-          // Learn weights hidden -> output
-          for (c = 0; c < layer1_size; c++) syn1[c + l2] += g * neu1[c];
-        }
         // NEGATIVE SAMPLING}
         if (negative > 0) for (d = 0; d < negative + 1; d++) {
           if (d == 0) {
@@ -830,21 +831,31 @@ void *TrainModelThread(void *id) {
             label = 1;
           } else {
             next_random = next_random * (unsigned long long)25214903917 + 11;
-            target = table[(next_random >> 16) % table_size];
+            //target = table[(next_random >> 16) % table_size];
+	    target = v->unigram_table[(next_random >> 16) % v->unigram_table.size()];
             if (target == 0) target = next_random % (vocab_size - 1) + 1;
             if (target == word) continue;
             label = 0;
           }
           l2 = target * layer1_size;
           f = 0;
-          for (c = 0; c < layer1_size; c++) f += neu1[c] * syn1neg[c + l2];
+          //for (c = 0; c < layer1_size; c++) f += neu1[c] * syn1neg[c + l2];
+
+	  // YO:
+	  for (c = 0; c < SIZE; c++) f += neu1[c] * v->weights[c + l2];
           if (f > MAX_EXP) g = (label - 1) * alpha;
           else if (f < -MAX_EXP) g = (label - 0) * alpha;
           else g = (label - expTable[(int)((f + MAX_EXP) * (EXP_TABLE_SIZE / MAX_EXP / 2))]) * alpha;
-	  for (c = 0; c < layer1_size; c++) neu1e[c] += g * syn1neg[c + l2];
+
+
+	  //for (c = 0; c < layer1_size; c++) neu1e[c] += g * syn1neg[c + l2];
 	  //for (c = 0; c < layer1_size; c++) syn1neg[c + l2] += g * neu1[c];
-	  for (c = 0; c < layer1_size; c++) syn1neg[c + l2] += (label-f) * alpha * neu1[c];
+	  //for (c = 0; c < layer1_size; c++) syn1neg[c + l2] += (label-f) * alpha * neu1[c];
+	  //for (c = 0; c < SIZE; c++) v->weights[c + l2] += (label-f) * alpha * neu1[c];
 	  //for (c = 0; c < layer1_size; c++) syn1neg[c + l2] += (label - .5) * alpha * (neu1[c] - syn1neg[c+l2]);
+
+	  // YO:
+	  for (c = 0; c < layer1_size; c++) v->weights[c + l2] += (label-f) * alpha * neu1[c];
         }
         // hidden -> in
         for (a = b; a < window * 2 + 1 - b; a++) if (a != window) {
@@ -854,152 +865,14 @@ void *TrainModelThread(void *id) {
           last_word = sen[c];
           if (last_word == -1) continue;
           //for (c = 0; c < layer1_size; c++) syn0[c + last_word * layer1_size] += neu1e[c];
-	  for (c = 0; c < layer1_size; c++) syn0[c + last_word * layer1_size] = syn1neg[c + last_word * layer1_size];	  
+	  //for (c = 0; c < layer1_size; c++) syn0[c + last_word * layer1_size] = syn1neg[c + last_word * layer1_size];
+
+	  // YO:
+	  //for (c = 0; c < layer1_size; c++) v->emb[c + last_word * layer1_size] = syn1neg[c + last_word * layer1_size];
+	  for (c = 0; c < layer1_size; c++) v->emb[c + last_word * layer1_size] = v->weights[c + last_word * layer1_size];
         }
       }
     } 
-    /* 
-     * ====================================
-     *        Skip-gram Architecture
-     * ====================================
-     * sen - This is the array of words in the sentence. Subsampling has already been
-     *       applied. I don't know what the word representation is...
-     *
-     * sentence_position - This is the index of the current input word.
-     *
-     * a - Offset into the current window, relative to the window start.
-     *     a will range from 0 to (window * 2) (TODO - not sure if it's inclusive or
-     *      not).
-     *
-     * c - 'c' is the index of the current context word *within the sentence*
-     *
-     * syn0 - The hidden layer weights.
-     *
-     * l1 - Index into the hidden layer (syn0). Index of the start of the
-     *      weights for the current input word.
-     */
-    else {  
-      // Loop over the positions in the context window (skipping the word at
-      // the center). 'a' is just the offset within the window, it's not 
-      // the index relative to the beginning of the sentence.
-      for (a = b; a < window * 2 + 1 - b; a++) if (a != window) {
-        
-        // Convert the window offset 'a' into an index 'c' into the sentence 
-        // array.
-        c = sentence_position - window + a;
-        
-        // Verify c isn't outisde the bounds of the sentence.
-        if (c < 0) continue;
-        if (c >= sentence_length) continue;
-        
-        // Get the context word. That is, get the id of the word (its index in
-        // the vocab table).
-        last_word = sen[c];
-        
-        // At this point we have two words identified:
-        //   'word' - The word at our current position in the sentence (in the
-        //            center of a context window).
-        //   'last_word' - The word at a position within the context window.
-        
-        // Verify that the word exists in the vocab (I don't think this should
-        // ever be the case?)
-        if (last_word == -1) continue;
-        
-        // Calculate the index of the start of the weights for 'last_word'.
-        l1 = last_word * layer1_size;
-        
-        for (c = 0; c < layer1_size; c++) neu1e[c] = 0;
-        
-        // HIERARCHICAL SOFTMAX
-        if (hs) for (d = 0; d < vocab[word].codelen; d++) {
-          f = 0;
-          l2 = vocab[word].point[d] * layer1_size;
-          // Propagate hidden -> output
-          for (c = 0; c < layer1_size; c++) f += syn0[c + l1] * syn1[c + l2];
-          if (f <= -MAX_EXP) continue;
-          else if (f >= MAX_EXP) continue;
-          else f = expTable[(int)((f + MAX_EXP) * (EXP_TABLE_SIZE / MAX_EXP / 2))];
-          // 'g' is the gradient multiplied by the learning rate
-          g = (1 - vocab[word].code[d] - f) * alpha;
-          // Propagate errors output -> hidden
-          for (c = 0; c < layer1_size; c++) neu1e[c] += g * syn1[c + l2];
-          // Learn weights hidden -> output
-          for (c = 0; c < layer1_size; c++) syn1[c + l2] += g * syn0[c + l1];
-        }
-        
-        // NEGATIVE SAMPLING
-        // Rather than performing backpropagation for every word in our 
-        // vocabulary, we only perform it for a few words (the number of words 
-        // is given by 'negative').
-        // These words are selected using a "unigram" distribution, which is generated
-        // in the function InitUnigramTable
-        if (negative > 0) for (d = 0; d < negative + 1; d++) {
-          // On the first iteration, we're going to train the positive sample.
-          if (d == 0) {
-            target = word;
-            label = 1;
-          // On the other iterations, we'll train the negative samples.
-          } else {
-            // Pick a random word to use as a 'negative sample'; do this using 
-            // the unigram table.
-            
-            // Get a random integer.
-            next_random = next_random * (unsigned long long)25214903917 + 11;
-            
-            // 'target' becomes the index of the word in the vocab to use as
-            // the negative sample.
-            target = table[(next_random >> 16) % table_size];
-            
-            // If the target is the special end of sentence token, then just
-            // pick a random word from the vocabulary instead.
-            if (target == 0) target = next_random % (vocab_size - 1) + 1;
-            
-            // Don't use the positive sample as a negative sample!
-            if (target == word) continue;
-            
-            // Mark this as a negative example.
-            label = 0;
-          }
-          
-          // Get the index of the target word in the output layer.
-          l2 = target * layer1_size;
-          
-          // At this point, our two words are represented by their index into
-          // the layer weights.
-          // l1 - The index of our input word within the hidden layer weights.
-          // l2 - The index of our output word within the output layer weights.
-          // label - Whether this is a positive (1) or negative (0) example.
-          
-          // Calculate the dot-product between the input words weights (in 
-          // syn0) and the output word's weights (in syn1neg).
-          f = 0;
-          for (c = 0; c < layer1_size; c++) f += syn0[c + l1] * syn1neg[c + l2];
-          
-          // This block does two things:
-          //   1. Calculates the output of the network for this training
-          //      pair, using the expTable to evaluate the output layer
-          //      activation function.
-          //   2. Calculate the error at the output, stored in 'g', by
-          //      subtracting the network output from the desired output, 
-          //      and finally multiply this by the learning rate.
-          if (f > MAX_EXP) g = (label - 1) * alpha;
-          else if (f < -MAX_EXP) g = (label - 0) * alpha;
-          else g = (label - expTable[(int)((f + MAX_EXP) * (EXP_TABLE_SIZE / MAX_EXP / 2))]) * alpha;
-          
-          // Multiply the error by the output layer weights.
-          // (I think this is the gradient calculation?)
-          // Accumulate these gradients over all of the negative samples.
-          for (c = 0; c < layer1_size; c++) neu1e[c] += g * syn1neg[c + l2];
-          
-          // Update the output layer weights by multiplying the output error
-          // by the hidden layer weights.
-          for (c = 0; c < layer1_size; c++) syn1neg[c + l2] += g * syn0[c + l1];
-        }
-        // Once the hidden layer gradients for all of the negative samples have
-        // been accumulated, update the hidden layer weights.
-        for (c = 0; c < layer1_size; c++) syn0[c + l1] += neu1e[c];
-	}
-    }
     
     // Advance to the next word in the sentence.
     sentence_position++;
@@ -1061,11 +934,14 @@ void TrainModel() {
   fo = fopen(output_file, "wb");
   if (classes == 0) {
     // Save the word vectors
-    fprintf(fo, "%lld %lld\n", vocab_size, layer1_size);
-    for (a = 0; a < vocab_size; a++) {
-      fprintf(fo, "%s ", vocab[a].word);
-      if (binary) for (b = 0; b < layer1_size; b++) fwrite(&syn0[a * layer1_size + b], sizeof(real), 1, fo);
-      else for (b = 0; b < layer1_size; b++) fprintf(fo, "%lf ", syn0[a * layer1_size + b]);
+    fprintf(fo, "%d %lld\n", v->n_unique_words, layer1_size);
+    for (a = 0; a < v->n_unique_words; a++) {
+      fprintf(fo, "%s ", v->index_to_word[a].c_str());
+      double vv[layer1_size];
+      for (int kk = 0; kk < layer1_size; kk++) {
+	vv[kk] = v->emb[a*layer1_size+kk];
+      }
+      if (binary) for (b = 0; b < layer1_size; b++) fwrite(&vv[b], sizeof(double), 1, fo);
       fprintf(fo, "\n");
     }
   } else {
@@ -1196,6 +1072,7 @@ int main(int argc, char **argv) {
   
   // Allocate the vocabulary table.
   vocab = (struct vocab_word *)calloc(vocab_max_size, sizeof(struct vocab_word));
+  v = CreateVocabulary(train_file);
   
   vocab_hash = (int *)calloc(vocab_hash_size, sizeof(int));
   expTable = (real *)malloc((EXP_TABLE_SIZE + 1) * sizeof(real));
