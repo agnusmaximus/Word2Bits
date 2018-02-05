@@ -27,9 +27,9 @@ int main(int argc, char **argv)
 {
   FILE *f;
   char st1[max_size], st2[max_size], st3[max_size], st4[max_size], bestw[N][max_size], file_name[max_size];
-  float dist, len, bestd[N], vec[max_size];
+  double dist, len, bestd[N], vec[max_size];
   long long words, size, a, b, c, d, b1, b2, b3, threshold = 0;
-  float *M;
+  double *M;
   char *vocab;
   int TCN, CCN = 0, TACN = 0, CACN = 0, SECN = 0, SYCN = 0, SEAC = 0, SYAC = 0, QID = 0, TQ = 0, TQS = 0;
   if (argc < 2) {
@@ -47,9 +47,9 @@ int main(int argc, char **argv)
   if (threshold) if (words > threshold) words = threshold;
   fscanf(f, "%lld", &size);
   vocab = (char *)malloc(words * max_w * sizeof(char));
-  M = (float *)malloc(words * size * sizeof(float));
+  M = (double *)malloc(words * size * sizeof(double));
   if (M == NULL) {
-    printf("Cannot allocate memory: %lld MB\n", words * size * sizeof(float) / 1048576);
+    printf("Cannot allocate memory: %lld MB\n", words * size * sizeof(double) / 1048576);
     return -1;
   }
   for (b = 0; b < words; b++) {
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     }
     vocab[b * max_w + a] = 0;
     for (a = 0; a < max_w; a++) vocab[b * max_w + a] = toupper(vocab[b * max_w + a]);
-    for (a = 0; a < size; a++) fread(&M[a + b * size], sizeof(float), 1, f);
+    for (a = 0; a < size; a++) fread(&M[a + b * size], sizeof(double), 1, f);
     len = 0;
     for (a = 0; a < size; a++) len += M[a + b * size] * M[a + b * size];
     len = sqrt(len);
@@ -77,8 +77,8 @@ int main(int argc, char **argv)
     if ((!strcmp(st1, ":")) || (!strcmp(st1, "EXIT")) || feof(stdin)) {
       if (TCN == 0) TCN = 1;
       if (QID != 0) {
-        printf("ACCURACY TOP1: %.2f %%  (%d / %d)\n", CCN / (float)TCN * 100, CCN, TCN);
-        printf("Total accuracy: %.2f %%   Semantic accuracy: %.2f %%   Syntactic accuracy: %.2f %% \n", CACN / (float)TACN * 100, SEAC / (float)SECN * 100, SYAC / (float)SYCN * 100);
+        printf("ACCURACY TOP1: %.2f %%  (%d / %d)\n", CCN / (double)TCN * 100, CCN, TCN);
+        printf("Total accuracy: %.2f %%   Semantic accuracy: %.2f %%   Syntactic accuracy: %.2f %% \n", CACN / (double)TACN * 100, SEAC / (double)SECN * 100, SYAC / (double)SYCN * 100);
       }
       QID++;
       scanf("%s", st1);
@@ -138,6 +138,6 @@ int main(int argc, char **argv)
     TCN++;
     TACN++;
   }
-  printf("Questions seen / total: %d %d   %.2f %% \n", TQS, TQ, TQS/(float)TQ*100);
+  printf("Questions seen / total: %d %d   %.2f %% \n", TQS, TQ, TQS/(double)TQ*100);
   return 0;
 }
