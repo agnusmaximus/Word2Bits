@@ -121,6 +121,7 @@ void debug_print_conversion(int sign,
 }
 
 real quantize(real num) {
+
   // Break into parts
   real copy = num;
   float_cast parts = {.f = num};
@@ -143,11 +144,13 @@ real quantize(real num) {
 			 num);*/
   real retval = 0;
   real sign = num < 0 ? -1 : 1;
+  //return sign;
   num *= sign;
 
   // Two bits:
   if (num >= 0 && num <= .5) retval = .25;
   else retval = .75;
+  //else retval = 1.5;
   return sign * retval;
   //return sign * (((num >= 0 && num <= .4) * .2) + (num > .4) * .6);
   //if (num >= 0 && num <= .4) retval = .2;
@@ -583,6 +586,7 @@ void TrainModel() {
       for (b = 0; b < layer1_size; b++) {
 	double avg = u[a*layer1_size+b] + v[a*layer1_size+b];
 	avg = quantize(avg);
+	//printf("%lf ", avg);
 	if (binary) fwrite(&avg, sizeof(double), 1, fo);
 	else fprintf(fo, "%lf ", avg);
       }
