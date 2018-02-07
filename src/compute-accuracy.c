@@ -77,8 +77,8 @@ int main(int argc, char **argv)
     if ((!strcmp(st1, ":")) || (!strcmp(st1, "EXIT")) || feof(stdin)) {
       if (TCN == 0) TCN = 1;
       if (QID != 0) {
-        printf("ACCURACY TOP1: %.2f %%  (%d / %d)\n", CCN / (double)TCN * 100, CCN, TCN);
-        printf("Total accuracy: %.2f %%   Semantic accuracy: %.2f %%   Syntactic accuracy: %.2f %% \n", CACN / (double)TACN * 100, SEAC / (double)SECN * 100, SYAC / (double)SYCN * 100);
+	printf("ACCURACY TOP1: %.2f %%  (%d / %d)\n", CCN / (double)TCN * 100, CCN, TCN);
+	printf("Total accuracy: %.2f %%   Semantic accuracy: %.2f %%   Syntactic accuracy: %.2f %% \n", CACN / (double)TACN * 100, SEAC / (double)SECN * 100, SYAC / (double)SYCN * 100);
       }
       QID++;
       scanf("%s", st1);
@@ -109,24 +109,55 @@ int main(int argc, char **argv)
     if (b3 == words) continue;
     for (b = 0; b < words; b++) if (!strcmp(&vocab[b * max_w], st4)) break;
     if (b == words) continue;
+
     for (a = 0; a < size; a++) vec[a] = (M[a + b2 * size] - M[a + b1 * size]) + M[a + b3 * size];
+
+    //double huh = 0;
+    //for (a = 0; a < size; a++)  huh += (M[a + b2 * size] - M[a + b1 * size]);
+    //printf("%s %s %lf\n", st2, st1, huh);
+    
+    //printf("Vectors diff: \n");
+    //for (a = 0; a < size; a++) {
+    //printf("%lf ", vec[a]-M[a+b3*size]);
+    //}
+    //printf("\n");
+
+    /*for (a = 0; a < size; a++) {
+      printf("%lf ", M[a+b1*size]);
+    }
+    printf("\n");
+    for (a = 0; a < size; a++) {
+      printf("%lf ", M[a+b2*size]);
+    }
+    printf("\n");
+    for (a = 0; a < size; a++) {
+	  printf("%lf ", M[a+b3*size]);
+    }
+    printf("\n");*/
+    //for (a = 0; a < size; a++) {
+    //printf("%lf ", M[a+b4*size]);
+    //}
+    //printf("\n");
+    
     TQS++;
     for (c = 0; c < words; c++) {
       if (c == b1) continue;
       if (c == b2) continue;
       if (c == b3) continue;
       dist = 0;
-      for (a = 0; a < size; a++) dist += vec[a] * M[a + c * size];
+      for (a = 0; a < size; a++) {
+	dist += vec[a] * M[a + c * size];
+      }
       for (a = 0; a < N; a++) {
-        if (dist > bestd[a]) {
-          for (d = N - 1; d > a; d--) {
-            bestd[d] = bestd[d - 1];
-            strcpy(bestw[d], bestw[d - 1]);
-          }
-          bestd[a] = dist;
-          strcpy(bestw[a], &vocab[c * max_w]);
-          break;
-        }
+	if (dist > bestd[a]) {
+	  for (d = N - 1; d > a; d--) {
+	    bestd[d] = bestd[d - 1];
+	    strcpy(bestw[d], bestw[d - 1]);
+	  }
+	  bestd[a] = dist;
+	  strcpy(bestw[a], &vocab[c * max_w]);
+	  break;
+	}
       }
     }
     if (!strcmp(st4, bestw[0])) {

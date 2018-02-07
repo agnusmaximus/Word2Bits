@@ -146,7 +146,7 @@ real quantize(real num) {
   real sign = num < 0 ? -1 : 1;
   //return sign;
   num *= sign;
-  return sign / 2;
+  //return sign / 3;
   // Two bits:
   if (num >= 0 && num <= .5) retval = .25;
   else retval = .75;
