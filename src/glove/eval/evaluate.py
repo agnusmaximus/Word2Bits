@@ -5,6 +5,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--vocab_file', default='vocab.txt', type=str)
     parser.add_argument('--vectors_file', default='vectors.txt', type=str)
+    parser.add_argument('--question_data_path', default='', type=str)    
     args = parser.parse_args()
 
     with open(args.vocab_file, 'r') as f:
@@ -14,6 +15,7 @@ def main():
         for line in f:
             vals = line.rstrip().split(' ')
             vectors[vals[0]] = [float(x) for x in vals[1:]]
+    prefix = args.question_data_path
 
     vocab_size = len(words)
     vocab = {w: idx for idx, w in enumerate(words)}
@@ -30,9 +32,9 @@ def main():
     W_norm = np.zeros(W.shape)
     d = (np.sum(W ** 2, 1) ** (0.5))
     W_norm = (W.T / d).T
-    evaluate_vectors(W_norm, vocab, ivocab)
+    evaluate_vectors(W_norm, vocab, ivocab, prefix)
 
-def evaluate_vectors(W, vocab, ivocab):
+def evaluate_vectors(W, vocab, ivocab, prefix):
     """Evaluate the trained word vectors on a variety of tasks"""
 
     filenames = [
@@ -41,8 +43,8 @@ def evaluate_vectors(W, vocab, ivocab):
         'gram2-opposite.txt', 'gram3-comparative.txt', 'gram4-superlative.txt',
         'gram5-present-participle.txt', 'gram6-nationality-adjective.txt',
         'gram7-past-tense.txt', 'gram8-plural.txt', 'gram9-plural-verbs.txt',
-        ]
-    prefix = './eval/question-data/'
+    ]
+    assert prefix != ""
 
     # to avoid memory overflow, could be increased/decreased
     # depending on system and vocab size
