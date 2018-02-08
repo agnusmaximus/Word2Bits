@@ -367,20 +367,13 @@ void InitNet() {
   for (a = 0; a < vocab_size; a++) {
     for (b = 0; b < layer1_size; b++) {
       next_random = next_random * (unsigned long long)25214903917 + 11;
-      //v[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) / (layer1_size);
-      //v[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) ;
       v[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) ;
-      //v[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5);
     }
   }
   for (a = 0; a < vocab_size; a++) 
     for (b = 0; b < layer1_size; b++) {
       next_random = next_random * (unsigned long long)25214903917 + 11;
-      //u[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) / 10;
-      //u[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) / (layer1_size);
-      //u[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5);
       u[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) ;
-      //u[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5);
     }
 }
 
@@ -394,6 +387,7 @@ void *TrainModelThread(void *id) {
   clock_t now;
   real *context_avg = (real *)calloc(layer1_size, sizeof(real));
   real *context_avge = (real *)calloc(layer1_size, sizeof(real));
+  real loss = 0;
   FILE *fi = fopen(train_file, "rb");
   fseek(fi, file_size / (long long)num_threads * (long long)id, SEEK_SET);
   while (1) {
@@ -402,9 +396,11 @@ void *TrainModelThread(void *id) {
       last_word_count = word_count;
       if ((debug_mode > 1)) {
 	now=clock();
-	printf("%cAlpha: %f  Progress: %.2f%%  Words/thread/sec: %.2fk  ", 13, alpha,
+	printf("%cAlpha: %f  Progress: %.2f%%  Cost: %f Words/thread/sec: %.2fk  ", 13, alpha,
 	       word_count_actual / (real)(iter * train_words + 1) * 100,
+	       loss,
 	       word_count_actual / ((real)(now - start + 1) / (real)CLOCKS_PER_SEC * 1000));
+	loss = 0;
 	print_stats();
 	fflush(stdout);
 	reset_stats();
@@ -478,6 +474,7 @@ void *TrainModelThread(void *id) {
 	if (f > MAX_EXP) g = (label - 1) * alpha;
 	else if (f < -MAX_EXP) g = (label - 0) * alpha;
 	else g = (label - expTable[(int)((f + MAX_EXP) * (EXP_TABLE_SIZE / MAX_EXP / 2))]) * alpha;
+	loss += g;
 	for (c = 0; c < layer1_size; c++) {
 	  context_avge[c] += g * quantize(v[c + l2]);
 	}

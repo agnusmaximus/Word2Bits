@@ -18,10 +18,10 @@ SAVEDIR := ./save_vectors/
 
 # Shared variables
 SAVE_FILE=$(SAVEDIR)/vectors
-WINDOW_SIZE=15
-VECTOR_SIZE=200
+WINDOW_SIZE=8
+VECTOR_SIZE=400
 NUM_THREADS=8
-MAX_ITER=2
+MAX_ITER=40
 
 # Glove variables
 QUESTION_DATA_PATH=./data/google_analogies_test_set/question-data/
@@ -34,6 +34,10 @@ COOCCURRENCE_SHUF_FILE=$(BUILDDIR)/cooccurrence.shuf.bin
 BINARY=2
 X_MAX=10
 
+# Mikolov variables
+MIKOLOV_SAVE_FILE=$(SAVEDIR)/mikolov_vectors.bin
+NEGATIVE_SIZE=25
+
 benchmark-glove:
 	@echo Building Glove...
 	$(CC_GLOVE) $(GLOVE_DIR)/glove.c -o $(BUILDDIR)/glove $(CFLAGS)
@@ -42,9 +46,9 @@ benchmark-glove:
 	$(CC_GLOVE) $(GLOVE_DIR)/vocab_count.c -o $(BUILDDIR)/vocab_count $(CFLAGS)
 
 	@echo Running Glove...
-	$(BUILDDIR)/vocab_count -min-count $(VOCAB_MIN_COUNT) -verbose $(VERBOSE) < $(TEXT8_PATH) > $(VOCAB_FILE)
-	$(BUILDDIR)/cooccur -memory $(MEMORY) -vocab-file $(VOCAB_FILE) -verbose $(VERBOSE) -window-size $(WINDOW_SIZE) < $(TEXT8_PATH) > $(COOCCURRENCE_FILE)
-	$(BUILDDIR)/shuffle -memory $(MEMORY) -verbose $VERBOSE < $(COOCCURRENCE_FILE) > $(COOCCURRENCE_SHUF_FILE)
+	#$(BUILDDIR)/vocab_count -min-count $(VOCAB_MIN_COUNT) -verbose $(VERBOSE) < $(TEXT8_PATH) > $(VOCAB_FILE)
+	#$(BUILDDIR)/cooccur -memory $(MEMORY) -vocab-file $(VOCAB_FILE) -verbose $(VERBOSE) -window-size $(WINDOW_SIZE) < $(TEXT8_PATH) > $(COOCCURRENCE_FILE)
+	#$(BUILDDIR)/shuffle -memory $(MEMORY) -verbose $VERBOSE < $(COOCCURRENCE_FILE) > $(COOCCURRENCE_SHUF_FILE)
 	$(BUILDDIR)/glove -save-file $(SAVE_FILE) -threads $(NUM_THREADS) -input-file $(COOCCURRENCE_SHUF_FILE) -x-max $X_MAX -iter $(MAX_ITER) -vector-size $(VECTOR_SIZE) -binary $(BINARY) -vocab-file $(VOCAB_FILE) -verbose $(VERBOSE)
 
 	@echo Evaluating Glove...
@@ -55,10 +59,10 @@ benchmark-mikolov:
 	$(CC_MIKOLOV) $(MIKOLOV_DIR)/word2bits.cpp $(CFLAGS) -o $(BUILDDIR)/word2bits_mikolov
 
 	@echo Running Mikolov...
-	$(BUILDDIR)/word2bits_mikolov -train $(TEXT8_PATH) -output $(SAVEDIR)/mikolov-vectors.bin -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative 25 -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER)
+	$(BUILDDIR)/word2bits_mikolov -train $(TEXT8_PATH) -output $(MIKOLOV_SAVE_FILE) -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER)
 
 	@echo Evaluating Mikolov
-	$(BUILDDIR)/compute_accuracy_mikolov $(SAVEFILE) < data/google_analogies_test_set/questions-words.txt
+	$(BUILDDIR)/compute_accuracy_mikolov $(MIKOLOV_SAVE_FILE) < data/google_analogies_test_set/questions-words.txt
 clean:
 	rm -f $(BUILDDIR)/word2bits_mikolov
 	rm -f $(BUILDDIR)/compute_accuracy_mikolov
