@@ -20,8 +20,8 @@ SAVEDIR := ./save_vectors/
 SAVE_FILE=$(SAVEDIR)/vectors
 WINDOW_SIZE=8
 VECTOR_SIZE=400
-NUM_THREADS=8
-MAX_ITER=40
+NUM_THREADS=10
+MAX_ITER=30
 
 # Glove variables
 QUESTION_DATA_PATH=./data/google_analogies_test_set/question-data/
