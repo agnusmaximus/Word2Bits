@@ -1,5 +1,6 @@
 from __future__ import print_function
 import sys
+import random
 import math
 import numpy as np
 
@@ -60,15 +61,26 @@ def write_bin_vec_compressed(vecs, fname_out):
                 assert code < 256 and code >= 0
                 f.write(chr(code))
             print("", file=f)
-        
+
+def write_bin_vec_text(vecs, fname_out):
+    with open(fname_out, "w") as f:
+        for name, vec in vecs.items():
+            vec_string = " ".join([str(x) for x in vec])
+            print("%s %s" % (name, vec_string), file=f)
+            
+def count(x):
+    return np.sum(x == .5)
+
 word_vecs = load_bin_vec(sys.argv[1])
+words = word_vecs.keys()
 stacked = np.vstack(word_vecs.values())
+shape = stacked.shape
 unique_values = np.unique(stacked)
 
 print("Unique vector values: %s" % str(unique_values))
-row_counts = np.sum(stacked, axis=0)
-column_counts = np.sum(stacked, axis=1)
+row_counts = [count(x) for x in stacked]
+column_counts = [count(x) for x in stacked.T]
 
 write_bin_vec_compressed(word_vecs, "out_compressed")
-#write_bin_vec(word_vecs, "out_compressed")
+write_bin_vec_text(word_vecs, "out_text")
 
