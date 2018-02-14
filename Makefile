@@ -18,10 +18,11 @@ SAVEDIR := ./save_vectors/
 
 # Shared variables
 SAVE_FILE=$(SAVEDIR)/vectors
-WINDOW_SIZE=8
-VECTOR_SIZE=400
-NUM_THREADS=10
-MAX_ITER=30
+WINDOW_SIZE=16
+#WINDOW_SIZE=2
+VECTOR_SIZE=500
+NUM_THREADS=16
+MAX_ITER=20
 
 # Glove variables
 QUESTION_DATA_PATH=./data/google_analogies_test_set/question-data/
@@ -36,7 +37,11 @@ X_MAX=10
 
 # Mikolov variables
 MIKOLOV_SAVE_FILE=$(SAVEDIR)/mikolov_vectors.bin
-NEGATIVE_SIZE=25
+NEGATIVE_SIZE=24
+#NEGATIVE_SIZE=5
+
+# QUANTIZATION VARIABLES
+BITLEVEL=1
 
 benchmark-glove:
 	@echo Building Glove...
@@ -59,7 +64,7 @@ benchmark-mikolov:
 	$(CC_MIKOLOV) $(MIKOLOV_DIR)/word2bits.cpp $(CFLAGS) -o $(BUILDDIR)/word2bits_mikolov
 
 	@echo Running Mikolov...
-	$(BUILDDIR)/word2bits_mikolov -train $(TEXT8_PATH) -output $(MIKOLOV_SAVE_FILE) -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER)
+	$(BUILDDIR)/word2bits_mikolov -bitlevel ${BITLEVEL} -train $(TEXT8_PATH) -output $(MIKOLOV_SAVE_FILE) -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER)
 
 	@echo Evaluating Mikolov
 	$(BUILDDIR)/compute_accuracy_mikolov $(MIKOLOV_SAVE_FILE) < data/google_analogies_test_set/questions-words.txt

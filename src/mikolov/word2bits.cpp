@@ -34,7 +34,7 @@ typedef numeric_limits< double > dbl;
 
 const int vocab_hash_size = 30000000;  // Maximum 30 * 0.7 = 21M words in the vocabulary
 
-typedef float real;                    // Precision of float numbers
+typedef double real;                    // Precision of float numbers
 
 struct vocab_word {
   long long cn;
@@ -45,7 +45,7 @@ struct vocab_word {
 char train_file[MAX_STRING], output_file[MAX_STRING];
 char save_vocab_file[MAX_STRING], read_vocab_file[MAX_STRING];
 struct vocab_word *vocab;
-int binary = 0, debug_mode = 2, window = 5, min_count = 5, num_threads = 12, min_reduce = 1;
+int binary = 0, debug_mode = 2, window = 5, min_count = 5, num_threads = 12, min_reduce = 1, bitlevel = 1;
 int *vocab_hash;
 long long vocab_max_size = 1000, vocab_size = 0, layer1_size = 100;
 long long train_words = 0, word_count_actual = 0, iter = 5, file_size = 0, classes = 0;
@@ -117,9 +117,26 @@ real quantize(real num) {
   real sign = num < 0 ? -1 : 1;
   num *= sign;
 
+  // Boundaries: 0
+  if (bitlevel == 1) {
+    return sign / 3;
+  }
+  
   // Determine boundary and discrete activation value (2 bits)
-  if (num >= 0 && num <= .5) retval = .25;
-  else retval = .75;
+  // Boundaries: 0, .5
+  if (bitlevel == 2) {
+    if (num >= 0 && num <= .5) retval = .25; 
+    else retval = .75;
+  }
+
+  // Determine boundary and discrete activation value (4 bits = 16 values)
+  // Boundaries: 0, .1, .2, .3, .4, .5, .6, .7, .8
+  //real boundaries[] = {0, .25, .5, .75, 1, 1.25, 1.5, 1.75};
+  if (bitlevel == 4) {
+    int casted = (num * 8) + (real).5;
+    casted = casted > 8 ? 8 : casted;
+    retval = casted / (real)8;
+  }
 
   return sign * retval;
 }
@@ -557,6 +574,7 @@ int main(int argc, char **argv) {
   output_file[0] = 0;
   save_vocab_file[0] = 0;
   read_vocab_file[0] = 0;
+  if ((i = ArgPos((char *)"-bitlevel", argc, argv)) > 0) bitlevel = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-size", argc, argv)) > 0) layer1_size = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-train", argc, argv)) > 0) strcpy(train_file, argv[i + 1]);
   if ((i = ArgPos((char *)"-debug", argc, argv)) > 0) debug_mode = atoi(argv[i + 1]);
