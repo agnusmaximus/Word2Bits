@@ -117,6 +117,11 @@ real quantize(real num) {
   real sign = num < 0 ? -1 : 1;
   num *= sign;
 
+  if (bitlevel == 0) {
+    // Special bitlevel 0 => full precision
+    return num;
+  }
+
   // Boundaries: 0
   if (bitlevel == 1) {
     return sign / 3;
