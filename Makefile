@@ -70,7 +70,7 @@ benchmark-mikolov:
 	$(BUILDDIR)/word2bits_mikolov -min-count $(MIN_COUNT) -bitlevel ${BITLEVEL} -train $(TEXT8_PATH) -output $(MIKOLOV_SAVE_FILE)_file${TEXT8_PATH}_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT} -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER)
 
 	@echo Evaluating Mikolov
-	$(BUILDDIR)/compute_accuracy_mikolov $(MIKOLOV_SAVE_FILE) < data/google_analogies_test_set/questions-words.txt
+	$(BUILDDIR)/compute_accuracy_mikolov $(MIKOLOV_SAVE_FILE)_file${TEXT8_PATH}_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT} < data/google_analogies_test_set/questions-words.txt
 benchmark-mikolov-large:
         @echo Building Mikolov...
         $(CC_MIKOLOV) -w  $(MIKOLOV_DIR)/compute-accuracy.c $(CFLAGS) -o $(BUILDDIR)/compute_accuracy_mikolov
@@ -80,7 +80,7 @@ benchmark-mikolov-large:
 	$(BUILDDIR)/word2bits_mikolov -min-count $(MIN_COUNT_FULL) -bitlevel ${BITLEVEL} -train $(TEXT8_PATH) -output $(MIKOLOV_SAVE_FILE)_file${TEXT8_PATH}_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER)
 
         @echo Evaluating Mikolov
-        $(BUILDDIR)/compute_accuracy_mikolov $(MIKOLOV_SAVE_FILE) < data/google_analogies_test_set/questions-words.txt
+        $(BUILDDIR)/compute_accuracy_mikolov $(MIKOLOV_SAVE_FILE)_file${TEXT8_PATH}_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} < data/google_analogies_test_set/questions-words.txt
 clean:
 	rm -f $(BUILDDIR)/word2bits_mikolov
 	rm -f $(BUILDDIR)/compute_accuracy_mikolov
