@@ -4,6 +4,7 @@ CFLAGS=-Ofast -march=native -lm -lpthread -funroll-loops -Wno-unused-result
 
 # Data file path
 TEXT8_PATH := /afs/ir.stanford.edu/users/m/a/maxlam//text8
+FULL_WIKI_PATH := /dfs/scratch0/maxlam/wiki.en.text
 
 # Path to source code
 MIKOLOV_DIR := ./src/mikolov/
@@ -20,9 +21,9 @@ SAVEDIR := ./save_vectors/
 SAVE_FILE=$(SAVEDIR)/vectors
 #WINDOW_SIZE=16
 WINDOW_SIZE=8
-VECTOR_SIZE=400
-NUM_THREADS=16
-MAX_ITER=10
+VECTOR_SIZE=500
+NUM_THREAD=16
+MAX_ITER=50
 
 # Glove variables
 QUESTION_DATA_PATH=./data/google_analogies_test_set/question-data/
@@ -77,10 +78,10 @@ benchmark-mikolov-large:
         $(CC_MIKOLOV) $(MIKOLOV_DIR)/word2bits.cpp $(CFLAGS) -o $(BUILDDIR)/word2bits_mikolov
 
         @echo Running Mikolov...
-	$(BUILDDIR)/word2bits_mikolov -min-count $(MIN_COUNT_FULL) -bitlevel ${BITLEVEL} -train $(TEXT8_PATH) -output $(MIKOLOV_SAVE_FILE)_file${TEXT8_PATH}_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER)
+	$(BUILDDIR)/word2bits_mikolov -min-count $(MIN_COUNT_FULL) -bitlevel ${BITLEVEL} -train $(FULL_WIKI_PATH) -output $(MIKOLOV_SAVE_FILE)_file${FULL_WIKI_PATH}_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER)
 
         @echo Evaluating Mikolov
-        $(BUILDDIR)/compute_accuracy_mikolov $(MIKOLOV_SAVE_FILE)_file${TEXT8_PATH}_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} < data/google_analogies_test_set/questions-words.txt
+        $(BUILDDIR)/compute_accuracy_mikolov $(MIKOLOV_SAVE_FILE)_file${FULL_WIKI_PATH}_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} < data/google_analogies_test_set/questions-words.txt
 clean:
 	rm -f $(BUILDDIR)/word2bits_mikolov
 	rm -f $(BUILDDIR)/compute_accuracy_mikolov
