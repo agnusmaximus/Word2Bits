@@ -41,7 +41,7 @@ MIKOLOV_SAVE_FILE=$(SAVEDIR)/mikolov_vectors.bin
 NEGATIVE_SIZE=10
 
 # QUANTIZATION VARIABLES
-BITLEVEL=5
+BITLEVEL=1
 
 benchmark-glove:
 	@echo Building Glove...

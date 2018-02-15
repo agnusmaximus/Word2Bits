@@ -112,16 +112,18 @@ void debug_print_conversion(int sign,
 }
 
 real quantize(real num) {
-  // Extract sign
-  real retval = 0;
-  real sign = num < 0 ? -1 : 1;
-  num *= sign;
 
   if (bitlevel == 0) {
     // Special bitlevel 0 => full precision
     return num;
   }
 
+  
+  // Extract sign
+  real retval = 0;
+  real sign = num < 0 ? -1 : 1;
+  num *= sign;
+  
   // Boundaries: 0
   if (bitlevel == 1) {
     return sign / 3;
