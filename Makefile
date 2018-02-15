@@ -18,11 +18,11 @@ SAVEDIR := ./save_vectors/
 
 # Shared variables
 SAVE_FILE=$(SAVEDIR)/vectors
-WINDOW_SIZE=16
-#WINDOW_SIZE=2
-VECTOR_SIZE=500
+#WINDOW_SIZE=16
+WINDOW_SIZE=8
+VECTOR_SIZE=100
 NUM_THREADS=16
-MAX_ITER=20
+MAX_ITER=10
 
 # Glove variables
 QUESTION_DATA_PATH=./data/google_analogies_test_set/question-data/
@@ -37,11 +37,11 @@ X_MAX=10
 
 # Mikolov variables
 MIKOLOV_SAVE_FILE=$(SAVEDIR)/mikolov_vectors.bin
-NEGATIVE_SIZE=24
-#NEGATIVE_SIZE=5
+#NEGATIVE_SIZE=24
+NEGATIVE_SIZE=10
 
 # QUANTIZATION VARIABLES
-BITLEVEL=1
+BITLEVEL=5
 
 benchmark-glove:
 	@echo Building Glove...

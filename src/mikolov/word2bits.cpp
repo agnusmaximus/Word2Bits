@@ -137,10 +137,11 @@ real quantize(real num) {
   // Determine boundary and discrete activation value (4 bits = 16 values)
   // Boundaries: 0, .1, .2, .3, .4, .5, .6, .7, .8
   //real boundaries[] = {0, .25, .5, .75, 1, 1.25, 1.5, 1.75};
-  if (bitlevel == 4) {
-    int casted = (num * 8) + (real).5;
-    casted = casted > 8 ? 8 : casted;
-    retval = casted / (real)8;
+  if (bitlevel >= 4) {
+    int segmentation = pow(2, bitlevel-1);
+    int casted = (num * segmentation) + (real).5;
+    casted = casted > segmentation ? segmentation : casted;
+    retval = casted / (real)segmentation;
   }
 
   return sign * retval;
@@ -402,7 +403,8 @@ void InitNet() {
 void *TrainModelThread(void *id) {
   long long a, b, c, d, cw, word, last_word, sentence_length = 0, sentence_position = 0;
   long long word_count = 0, last_word_count = 0, sen[MAX_SENTENCE_LENGTH + 1];
-  long long l2, target, label, local_iter = iter;
+  // local_iter = 1 to save the model every epoch
+  long long l2, target, label, local_iter = 1;
   unsigned long long next_random = (long long)id;
   char eof = 0;
   real f, g;
@@ -541,9 +543,33 @@ void TrainModel() {
   if (output_file[0] == 0) return;
   InitNet();
   if (negative > 0) InitUnigramTable();
+
   start = clock();
-  for (a = 0; a < num_threads; a++) pthread_create(&pt[a], NULL, TrainModelThread, (void *)a);
-  for (a = 0; a < num_threads; a++) pthread_join(pt[a], NULL);
+  for (int iteration = 0; iteration < iter; iteration++) {
+    printf("Starting epoch: %d\n", iteration);
+    for (a = 0; a < num_threads; a++) pthread_create(&pt[a], NULL, TrainModelThread, (void *)a);
+    for (a = 0; a < num_threads; a++) pthread_join(pt[a], NULL);
+    char output_file_cur_iter[MAX_STRING] = {0};
+    sprintf(output_file_cur_iter, "%s_epoch%d", output_file, iteration);
+    fo = fopen(output_file_cur_iter, "wb");
+    if (classes == 0) {
+      // Save the word vectors
+      fprintf(fo, "%lld %lld\n", vocab_size, layer1_size);
+      for (a = 0; a < vocab_size; a++) {
+	fprintf(fo, "%s ", vocab[a].word);
+	for (b = 0; b < layer1_size; b++) {
+	  float avg = u[a*layer1_size+b] + v[a*layer1_size+b];
+	  avg = quantize(avg);
+	  if (binary) fwrite(&avg, sizeof(float), 1, fo);
+	  else fprintf(fo, "%lf ", avg);
+	}
+	fprintf(fo, "\n");
+      }
+    }
+    fclose(fo);
+  }
+
+  // Write an extra file
   fo = fopen(output_file, "wb");
   if (classes == 0) {
     // Save the word vectors
@@ -557,9 +583,9 @@ void TrainModel() {
 	else fprintf(fo, "%lf ", avg);
       }
       fprintf(fo, "\n");
-    }
-  } 
-  fclose(fo);
+      }
+  }
+  fclose(fo);  
 }
 
 int ArgPos(char *str, int argc, char **argv) {
