@@ -26,7 +26,7 @@
 using namespace std;
 typedef numeric_limits< double > dbl;
 
-#define MAX_STRING 100
+#define MAX_STRING 4096
 #define EXP_TABLE_SIZE 1000
 #define MAX_EXP 6
 #define MAX_SENTENCE_LENGTH 1000
@@ -117,7 +117,6 @@ real quantize(real num) {
     // Special bitlevel 0 => full precision
     return num;
   }
-
   
   // Extract sign
   real retval = 0;
