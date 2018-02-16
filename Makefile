@@ -1,6 +1,6 @@
 CC_MIKOLOV=g++
 CC_GLOVE=gcc
-CFLAGS=-O3 -march=native -lm -lpthread -funroll-loops -Wno-unused-result
+CFLAGS=-Ofast -march=native -lm -lpthread -funroll-loops -Wno-unused-result
 
 # Data file path
 TEXT8_PATH := /afs/ir.stanford.edu/users/m/a/maxlam/text8
@@ -20,11 +20,10 @@ FULLWIKISAVEDIR := /dfs/scratch0/maxlam/w2bvectors/
 
 # Shared variables
 SAVE_FILE=$(SAVEDIR)/vectors
-#WINDOW_SIZE=16
-WINDOW_SIZE=8
+WINDOW_SIZE=10
 VECTOR_SIZE=500
 NUM_THREADS=16
-MAX_ITER=50
+MAX_ITER=1
 
 # Glove variables
 QUESTION_DATA_PATH=./data/google_analogies_test_set/question-data/

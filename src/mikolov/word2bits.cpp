@@ -74,7 +74,6 @@ typedef union {
 } float_cast;
 
 real quantize(real num, int bitlevel) {
-  return num;
 
   if (bitlevel == 0) {
     // Special bitlevel 0 => full precision
