@@ -34,7 +34,7 @@ typedef numeric_limits< double > dbl;
 
 const int vocab_hash_size = 30000000;  // Maximum 30 * 0.7 = 21M words in the vocabulary
 
-typedef double real;                    // Precision of float numbers
+typedef float real;                    // Precision of float numbers
 
 struct vocab_word {
   long long cn;
@@ -49,6 +49,7 @@ int binary = 0, debug_mode = 2, window = 5, min_count = 5, num_threads = 12, min
 int *vocab_hash;
 long long vocab_max_size = 1000, vocab_size = 0, layer1_size = 100;
 long long train_words = 0, word_count_actual = 0, iter = 5, file_size = 0, classes = 0;
+bool save_every_epoch = 1;
 real alpha = 0.05, starting_alpha, sample = 1e-3;
 real *u, *v, *expTable;
 clock_t start;
@@ -72,46 +73,8 @@ typedef union {
   } parts;
 } float_cast;
 
-void track_values_stats(real v) {
-  if (num_threads == 1) {
-    if (v < 0) v = -v;
-    if (v < min_val) min_val = v;
-    if (v > max_val) max_val = v;
-  }
-}
-
-void reset_stats() {
-  min_val = 1000000000;
-  max_val = -1000000000;
-}
-
-void print_stats() {
-  if (num_threads == 1) {
-    cout.precision(100);
-    cout << "Min,max: " << fixed << min_val << " " << fixed << max_val << endl;
-  }
-}
-
-string to_binary(int number) {
-  string result = "";
-  for (unsigned int i = 0; i < sizeof(int) * 8; i++) {
-    string to_prepend(1, (number & 1) + '0');
-    result = to_prepend + result;
-    number >>= 1;
-  }
-  return result;
-}
-
-void debug_print_conversion(int sign,
-			    int exp,
-			    int mantissa,
-			    real val) {
-  cout.precision(100);
-  cout << "Target: " << fixed << val << endl;
-  printf("%s %s %s\n", to_binary(sign).c_str(), to_binary(exp).c_str(), to_binary(mantissa).c_str());
-}
-
-real quantize(real num) {
+real quantize(real num, int bitlevel) {
+  return num;
 
   if (bitlevel == 0) {
     // Special bitlevel 0 => full precision
@@ -408,6 +371,7 @@ void *TrainModelThread(void *id) {
   long long l2, target, label, local_iter = 1;
   unsigned long long next_random = (long long)id;
   char eof = 0;
+  int local_bitlevel = bitlevel;
   real f, g;
   clock_t now;
   real *context_avg = (real *)calloc(layer1_size, sizeof(real));
@@ -416,7 +380,7 @@ void *TrainModelThread(void *id) {
   FILE *fi = fopen(train_file, "rb");
   fseek(fi, file_size / (long long)num_threads * (long long)id, SEEK_SET);
   while (1) {
-    if (word_count - last_word_count > 100000) {
+    if (word_count - last_word_count > 10000) {
       word_count_actual += word_count - last_word_count;
       last_word_count = word_count;
       if ((debug_mode > 1)) {
@@ -426,9 +390,7 @@ void *TrainModelThread(void *id) {
 	       loss,
 	       word_count_actual / ((real)(now - start + 1) / (real)CLOCKS_PER_SEC * 1000));
 	loss = 0;
-	print_stats();
 	fflush(stdout);
-	reset_stats();
       }
       alpha = starting_alpha * (1 - word_count_actual / (real)(iter * train_words + 1));
       if (alpha < starting_alpha * 0.0001) alpha = starting_alpha * 0.0001;
@@ -477,7 +439,7 @@ void *TrainModelThread(void *id) {
 	last_word = sen[c];
 	if (last_word == -1) continue;
 	for (c = 0; c < layer1_size; c++)
-	  context_avg[c] += quantize(u[c + last_word * layer1_size]);
+	  context_avg[c] += quantize(u[c + last_word * layer1_size], local_bitlevel);
 	  cw++;
       }
     if (cw) {
@@ -495,17 +457,16 @@ void *TrainModelThread(void *id) {
 	}
 	l2 = target * layer1_size;
 	f = 0;
-	for (c = 0; c < layer1_size; c++) f += context_avg[c] * quantize(v[c + l2]);
+	for (c = 0; c < layer1_size; c++) f += context_avg[c] * quantize(v[c + l2], local_bitlevel);
 	if (f > MAX_EXP) g = (label - 1) * alpha;
 	else if (f < -MAX_EXP) g = (label - 0) * alpha;
 	else g = (label - expTable[(int)((f + MAX_EXP) * (EXP_TABLE_SIZE / MAX_EXP / 2))]) * alpha;
 	loss += g;
 	for (c = 0; c < layer1_size; c++) {
-	  context_avge[c] += g * quantize(v[c + l2]);
+	  context_avge[c] += g * quantize(v[c + l2], local_bitlevel);
 	}
 	for (c = 0; c < layer1_size; c++) {
 	  v[c + l2] += g * context_avg[c];
-	  track_values_stats(v[c + l2]);
 	}
       }
       // hidden -> in
@@ -517,7 +478,6 @@ void *TrainModelThread(void *id) {
 	  if (last_word == -1) continue;
 	  for (c = 0; c < layer1_size; c++) {
 	    u[c + last_word * layer1_size] += context_avge[c];
-	    track_values_stats(u[c + last_word * layer1_size]);
 	  }
 	}
     }
@@ -553,14 +513,14 @@ void TrainModel() {
     char output_file_cur_iter[MAX_STRING] = {0};
     sprintf(output_file_cur_iter, "%s_epoch%d", output_file, iteration);
     fo = fopen(output_file_cur_iter, "wb");
-    if (classes == 0) {
+    if (classes == 0 && save_every_epoch) {
       // Save the word vectors
       fprintf(fo, "%lld %lld\n", vocab_size, layer1_size);
       for (a = 0; a < vocab_size; a++) {
 	fprintf(fo, "%s ", vocab[a].word);
 	for (b = 0; b < layer1_size; b++) {
 	  float avg = u[a*layer1_size+b] + v[a*layer1_size+b];
-	  avg = quantize(avg);
+	  avg = quantize(avg, bitlevel);
 	  if (binary) fwrite(&avg, sizeof(float), 1, fo);
 	  else fprintf(fo, "%lf ", avg);
 	}
@@ -579,7 +539,7 @@ void TrainModel() {
       fprintf(fo, "%s ", vocab[a].word);
       for (b = 0; b < layer1_size; b++) {
 	float avg = u[a*layer1_size+b] + v[a*layer1_size+b];
-	avg = quantize(avg);
+	avg = quantize(avg, bitlevel);
 	if (binary) fwrite(&avg, sizeof(float), 1, fo);
 	else fprintf(fo, "%lf ", avg);
       }
@@ -606,6 +566,7 @@ int main(int argc, char **argv) {
   output_file[0] = 0;
   save_vocab_file[0] = 0;
   read_vocab_file[0] = 0;
+  if ((i = ArgPos((char *)"-save-every-epoch", argc, argv)) > 0) save_every_epoch = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-bitlevel", argc, argv)) > 0) bitlevel = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-size", argc, argv)) > 0) layer1_size = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-train", argc, argv)) > 0) strcpy(train_file, argv[i + 1]);
