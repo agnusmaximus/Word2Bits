@@ -16,14 +16,14 @@ BUILDDIR := ./build/
 
 # Path to saved vector outputs
 SAVEDIR := ./save_vectors/
-FULLWIKISAVEDIR := /dfs/scratch0/maxlam/w2bvectors/
+FULLWIKISAVEDIR := /lfs/1/maxlam/w2b/
 
 # Shared variables
 SAVE_FILE=$(SAVEDIR)/vectors
 WINDOW_SIZE=10
-VECTOR_SIZE=500
-NUM_THREADS=16
-MAX_ITER=1
+VECTOR_SIZE=400
+NUM_THREADS=45
+MAX_ITER=50
 
 # Glove variables
 QUESTION_DATA_PATH=./data/google_analogies_test_set/question-data/
@@ -39,14 +39,12 @@ X_MAX=10
 # Mikolov variables
 MIKOLOV_SAVE_FILE=$(SAVEDIR)/mikolov_vectors.bin
 FULLWIKI_MIKOLOV_SAVE_FILE=$(FULLWIKISAVEDIR)/mikolov_vectors.bin
-NEGATIVE_SIZE=24
+NEGATIVE_SIZE=12
 MIN_COUNT=5
-MIN_COUNT_FULL=100
-#NEGATIVE_SIZE=8
-#NEGATIVE_SIZE=32
+MIN_COUNT_FULL=5
 
 # QUANTIZATION VARIABLES
-BITLEVEL=1
+BITLEVEL=0
 
 benchmark-glove:
 	@echo Building Glove...
