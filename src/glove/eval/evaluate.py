@@ -8,8 +8,8 @@ def main():
     parser.add_argument('--question_data_path', default='', type=str)    
     args = parser.parse_args()
 
-    with open(args.vocab_file, 'r') as f:
-        words = [x.rstrip().split(' ')[0] for x in f.readlines()]
+    #with open(args.vocab_file, 'r') as f:
+    #    words = [x.rstrip().split(' ')[0] for x in f.readlines()]
     with open(args.vectors_file, 'r') as f:
         vectors = {}
         for line in f:
@@ -17,6 +17,7 @@ def main():
             vectors[vals[0]] = [float(x) for x in vals[1:]]
     prefix = args.question_data_path
 
+    words = vectors.keys()
     vocab_size = len(words)
     vocab = {w: idx for idx, w in enumerate(words)}
     ivocab = {idx: w for idx, w in enumerate(words)}
@@ -86,6 +87,7 @@ def evaluate_vectors(W, vocab, ivocab, prefix):
             predictions[subset] = np.argmax(dist, 0).flatten()
 
         val = (ind4 == predictions) # correct predictions
+        correct_tot, count_tot = 0, 0            
         count_tot = count_tot + len(ind1)
         correct_tot = correct_tot + sum(val)
         if i < 5:
@@ -97,7 +99,7 @@ def evaluate_vectors(W, vocab, ivocab, prefix):
 
         print("%s:" % filenames[i])
         print('ACCURACY TOP1: %.2f%% (%d/%d)' %
-            (np.mean(val) * 100, np.sum(val), len(val)))
+              (np.mean(val) * 100, np.sum(val), len(val)))
 
     print('Questions seen/total: %.2f%% (%d/%d)' %
         (100 * count_tot / float(full_count), count_tot, full_count))

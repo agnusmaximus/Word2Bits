@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   }
   strcpy(file_name, argv[1]);
   if (argc > 2) bitlevel = atoi(argv[2]);
-  if (argc > 3) threshold = atoi(argv[2]);
+  if (argc > 3) threshold = atoi(argv[3]);
   f = fopen(file_name, "rb");
   if (f == NULL) {
     printf("Input file not found\n");
