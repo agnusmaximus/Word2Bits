@@ -1,9 +1,30 @@
+# Usage: python compress_word2bits.py input_binary_wordvecs output_file [threshold_value]
 from __future__ import print_function
 import sys
 import random
 import math
 import numpy as np
 
+assert len(sys.argv) >= 3
+threshold = int(sys.argv[3]) if len(sys.argv) >= 4 else 0
+
+def threshold_value(x):
+    if threshold == 0:
+        return x
+    retval = 0
+    sign = -1 if x < 0 else 1
+    x *= sign    
+    if threshold == 1:
+        return sign / 3
+    elif threshold == 2:
+        if x >= 0 and x <= .5:
+            retval = .25
+        else:
+            retval = .75
+    else:
+        assert(0)
+    return sign * retval
+    
 def load_bin_vec(fname):
     word_vecs = {}
     ordering = []
@@ -74,7 +95,17 @@ def write_bin_vec_text(vecs, fname_out):
 def count(x):
     return np.sum(x == .5)
 
+
 word_vecs = load_bin_vec(sys.argv[1])
+
+if threshold != 0:
+    print("Thresholding: %d" % threshold)
+    threshold_function = np.vectorize(threshold_value)
+    for i, (k,vec) in enumerate(word_vecs.items()):
+        if i % 100000 == 0:
+            print("%d of %d" % (i, len(word_vecs)))
+        word_vecs[k] = threshold_function(vec)
+
 #words = word_vecs.keys()
 #stacked = np.vstack(word_vecs.values())
 #shape = stacked.shape
