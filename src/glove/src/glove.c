@@ -35,6 +35,42 @@
 
 typedef double real;
 
+real quantize(real num, int bitlevel) {
+  if (bitlevel == 0) {
+    // Special bitlevel 0 => full precision
+    return num;
+  }
+  
+  // Extract sign
+  real retval = 0;
+  real sign = num < 0 ? -1 : 1;
+  num *= sign;
+  
+  // Boundaries: 0
+  if (bitlevel == 1) {
+    return sign / 3;
+  }
+  
+  // Determine boundary and discrete activation value (2 bits)
+  // Boundaries: 0, .5
+  if (bitlevel == 2) {
+    if (num >= 0 && num <= .5) retval = .25; 
+    else retval = .75;
+  }
+
+  // Determine boundary and discrete activation value (4 bits = 16 values)
+  // Boundaries: 0, .1, .2, .3, .4, .5, .6, .7, .8
+  //real boundaries[] = {0, .25, .5, .75, 1, 1.25, 1.5, 1.75};
+  if (bitlevel >= 4) {
+    int segmentation = pow(2, bitlevel-1);
+    int casted = (num * segmentation) + (real).5;
+    casted = casted > segmentation ? segmentation : casted;
+    retval = casted / (real)segmentation;
+  }
+
+  return sign * retval;
+}
+
 typedef struct cooccur_rec {
     int word1;
     int word2;
@@ -56,20 +92,6 @@ real alpha = 0.75, x_max = 100.0; // Weighting function parameters, not extremel
 real *W, *gradsq, *cost;
 long long num_lines, *lines_per_thread, vocab_size;
 char *vocab_file, *input_file, *save_W_file, *save_gradsq_file;
-
-real quantize(real num) {
-  //return num;
-  // Extract sign
-  real retval = 0;
-  real sign = num < 0 ? -1 : 1;
-  num *= sign;
-
-  // Determine boundary and discrete activation value (2 bits)
-  if (num >= 0 && num <= .06) retval = .03;
-  else retval = .09;
-
-  return sign * retval;
-}
 
 /* Efficient string comparison */
 int scmp( char *s1, char *s2 ) {
@@ -93,7 +115,6 @@ void initialize_parameters() {
         exit(1);
     }
     for (b = 0; b < vector_size; b++) for (a = 0; a < 2 * vocab_size; a++) W[a * vector_size + b] = (rand() / (real)RAND_MAX - 0.5) / vector_size;
-    //for (b = 0; b < vector_size; b++) for (a = 0; a < 2 * vocab_size; a++) W[a * vector_size + b] = (rand() / (real)RAND_MAX - 0.5);
     for (b = 0; b < vector_size; b++) for (a = 0; a < 2 * vocab_size; a++) gradsq[a * vector_size + b] = 1.0; // So initial value of eta is equal to initial learning rate
     vector_size--;
 }
@@ -131,10 +152,9 @@ void *glove_thread(void *vid) {
         
         /* Calculate cost, save diff for gradients */
         diff = 0;
-        //for (b = 0; b < vector_size; b++) diff += W[b + l1] * W[b + l2]; // dot product of word and context word vector
-        //diff += W[vector_size + l1] + W[vector_size + l2] - log(cr.val); // add separate bias for each word
-	for (b = 0; b < vector_size; b++) diff += quantize(W[b + l1]) * quantize(W[b + l2]); // dot product of word and context word vector
-        diff += quantize(W[vector_size + l1]) + quantize(W[vector_size + l2]) - log(cr.val); // add separate bias for each word
+	for (b = 0; b < vector_size; b++) diff += quantize(W[b + l1], 1) * quantize(W[b + l2], 1); // dot product of word and context word vector
+        diff += quantize(W[vector_size + l1], 1) + quantize(W[vector_size + l2], 1) - log(cr.val); // add separate bias for each word
+	
         fdiff = (cr.val > x_max) ? diff : pow(cr.val / x_max, alpha) * diff; // multiply weighting function (f) with diff
 
         // Check for NaN and inf() in the diffs.
@@ -151,7 +171,7 @@ void *glove_thread(void *vid) {
         real W_updates2_sum = 0;
         for (b = 0; b < vector_size; b++) {
             // learning rate times gradient for word vectors
-	    temp1 = fdiff * W[b + l2];
+            temp1 = fdiff * W[b + l2];
             temp2 = fdiff * W[b + l1];
             // adaptive updates
             W_updates1[b] = temp1 / sqrt(gradsq[b + l1]);
@@ -174,8 +194,7 @@ void *glove_thread(void *vid) {
         fdiff *= fdiff;
         gradsq[vector_size + l1] += fdiff;
         gradsq[vector_size + l2] += fdiff;
-	
-        eta -= 1e-11;
+        
     }
     free(W_updates1);
     free(W_updates2);
@@ -197,6 +216,14 @@ int save_params(int nb_iter) {
     char output_file[MAX_STRING_LENGTH], output_file_gsq[MAX_STRING_LENGTH];
     char *word = malloc(sizeof(char) * MAX_STRING_LENGTH + 1);
     FILE *fid, *fout, *fgs;
+
+    // Quantize all values (Except biases)
+    for (a = 0; a < 2*vocab_size; a++) {
+      for (b = 0; b < vector_size; b++) {
+	int index = a * (vector_size+1) + b;
+	W[index] = quantize(W[index], 1);
+      }
+    }
     
     if (use_binary > 0) { // Save parameters in binary file
         if (nb_iter <= 0)
@@ -205,11 +232,8 @@ int save_params(int nb_iter) {
             sprintf(output_file,"%s.%03d.bin",save_W_file,nb_iter);
 
         fout = fopen(output_file,"wb");
-        if (fout == NULL) {fprintf(stderr, "Unable to open file %s.\n",save_W_file); return 1;}
-        for (a = 0; a < 2 * (long long)vocab_size * (vector_size + 1); a++) {
-	  real quantized = quantize(W[a]);
-	  fwrite(&quantized, sizeof(real), 1,fout);
-	}
+        if (fout == NULL) {fprintf(stderr, "Unable to open file %s.\n",save_W_file); return 1;}	
+        for (a = 0; a < 2 * (long long)vocab_size * (vector_size + 1); a++) fwrite(&W[a], sizeof(real), 1,fout);
         fclose(fout);
         if (save_gradsq > 0) {
             if (nb_iter <= 0)
@@ -249,13 +273,13 @@ int save_params(int nb_iter) {
             if (strcmp(word, "<unk>") == 0) return 1;
             fprintf(fout, "%s",word);
             if (model == 0) { // Save all parameters (including bias)
-  	        for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", quantize(W[a * (vector_size + 1) + b]));
-                for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", quantize(W[(vocab_size + a) * (vector_size + 1) + b]));
+                for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", W[a * (vector_size + 1) + b]);
+                for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", W[(vocab_size + a) * (vector_size + 1) + b]);
             }
             if (model == 1) // Save only "word" vectors (without bias)
-	        for (b = 0; b < vector_size; b++) fprintf(fout," %lf", quantize(W[a * (vector_size + 1) + b]));
-            if (model == 2)  // Save "word + context word" vectors (without bias)	      
-	        for (b = 0; b < vector_size; b++) fprintf(fout," %lf", quantize(W[a * (vector_size + 1) + b] + W[(vocab_size + a) * (vector_size + 1) + b]));
+                for (b = 0; b < vector_size; b++) fprintf(fout," %lf", W[a * (vector_size + 1) + b]);
+            if (model == 2) // Save "word + context word" vectors (without bias)
+                for (b = 0; b < vector_size; b++) fprintf(fout," %lf", W[a * (vector_size + 1) + b] + W[(vocab_size + a) * (vector_size + 1) + b]);
             fprintf(fout,"\n");
             if (save_gradsq > 0) { // Save gradsq
                 fprintf(fgs, "%s",word);
@@ -275,20 +299,20 @@ int save_params(int nb_iter) {
 
             for (a = vocab_size - num_rare_words; a < vocab_size; a++) {
                 for (b = 0; b < (vector_size + 1); b++) {
-		    unk_vec[b] += W[a * (vector_size + 1) + b] / num_rare_words;
+                    unk_vec[b] += W[a * (vector_size + 1) + b] / num_rare_words;
                     unk_context[b] += W[(vocab_size + a) * (vector_size + 1) + b] / num_rare_words;
                 }
             }
 
             fprintf(fout, "%s",word);
             if (model == 0) { // Save all parameters (including bias)
-	      for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", quantize(unk_vec[b]));
-	      for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", quantize(unk_context[b]));
+                for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", unk_vec[b]);
+                for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", unk_context[b]);
             }
             if (model == 1) // Save only "word" vectors (without bias)
-	      for (b = 0; b < vector_size; b++) fprintf(fout," %lf", quantize(unk_vec[b]));
+                for (b = 0; b < vector_size; b++) fprintf(fout," %lf", unk_vec[b]);
             if (model == 2) // Save "word + context word" vectors (without bias)
-	      for (b = 0; b < vector_size; b++) fprintf(fout," %lf", quantize(unk_vec[b] + unk_context[b]));
+                for (b = 0; b < vector_size; b++) fprintf(fout," %lf", unk_vec[b] + unk_context[b]);
             fprintf(fout,"\n");
 
             free(unk_vec);
@@ -347,7 +371,7 @@ int train_glove() {
         time(&rawtime);
         info = localtime(&rawtime);
         strftime(time_buffer,80,"%x - %I:%M.%S%p", info);
-        fprintf(stderr, "%s, iter: %03d, cost: %lf, lr: %lf\n", time_buffer,  b+1, total_cost/num_lines, eta);
+        fprintf(stderr, "%s, iter: %03d, cost: %lf\n", time_buffer,  b+1, total_cost/num_lines);
 
         if (checkpoint_every > 0 && (b + 1) % checkpoint_every == 0) {
             fprintf(stderr,"    saving itermediate parameters for iter %03d...", b+1);

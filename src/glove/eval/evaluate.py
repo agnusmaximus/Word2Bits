@@ -3,13 +3,15 @@ import numpy as np
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--vocab_file', default='vocab.txt', type=str)
+    parser.add_argument('--vocab_file', default=None, type=str)
     parser.add_argument('--vectors_file', default='vectors.txt', type=str)
     parser.add_argument('--question_data_path', default='', type=str)    
     args = parser.parse_args()
 
-    #with open(args.vocab_file, 'r') as f:
-    #    words = [x.rstrip().split(' ')[0] for x in f.readlines()]
+    words = None
+    if args.vocab_file is not None:
+        with open(args.vocab_file, 'r') as f:
+            words = [x.rstrip().split(' ')[0] for x in f.readlines()]
     with open(args.vectors_file, 'r') as f:
         vectors = {}
         for line in f:
@@ -17,7 +19,8 @@ def main():
             vectors[vals[0]] = [float(x) for x in vals[1:]]
     prefix = args.question_data_path
 
-    words = vectors.keys()
+    if words is None:
+        words = vectors.keys()
     vocab_size = len(words)
     vocab = {w: idx for idx, w in enumerate(words)}
     ivocab = {idx: w for idx, w in enumerate(words)}
