@@ -51,6 +51,7 @@ long long vocab_max_size = 1000, vocab_size = 0, layer1_size = 100;
 long long train_words = 0, word_count_actual = 0, iter = 5, file_size = 0, classes = 0;
 bool save_every_epoch = 1;
 real alpha = 0.05, starting_alpha, sample = 1e-3;
+real *thread_losses;
 real *u, *v, *expTable;
 clock_t start;
 
@@ -375,7 +376,7 @@ void *TrainModelThread(void *id) {
   clock_t now;
   real *context_avg = (real *)calloc(layer1_size, sizeof(real));
   real *context_avge = (real *)calloc(layer1_size, sizeof(real));
-  real loss = 0;
+  real loss = 0, total_loss = 0;  
   FILE *fi = fopen(train_file, "rb");
   fseek(fi, file_size / (long long)num_threads * (long long)id, SEEK_SET);
   while (1) {
@@ -460,7 +461,8 @@ void *TrainModelThread(void *id) {
 	if (f > MAX_EXP) g = (label - 1) * alpha;
 	else if (f < -MAX_EXP) g = (label - 0) * alpha;
 	else g = (label - expTable[(int)((f + MAX_EXP) * (EXP_TABLE_SIZE / MAX_EXP / 2))]) * alpha;
-	loss += g;
+	loss += g / alpha;
+	total_loss += g / alpha;
 	for (c = 0; c < layer1_size; c++) {
 	  context_avge[c] += g * quantize(v[c + l2], local_bitlevel);
 	}
@@ -486,6 +488,7 @@ void *TrainModelThread(void *id) {
       continue;
     }
   }
+  thread_losses[(long long)id] = total_loss;
   fclose(fi);
   free(context_avg);
   free(context_avge);
@@ -495,6 +498,7 @@ void *TrainModelThread(void *id) {
 void TrainModel() {
   long a, b;
   FILE *fo;
+  thread_losses = (real *)malloc(sizeof(real) * num_threads);
   pthread_t *pt = (pthread_t *)malloc(num_threads * sizeof(pthread_t));
   printf("Starting training using file %s\n", train_file);
   starting_alpha = alpha;
@@ -507,8 +511,12 @@ void TrainModel() {
   start = clock();
   for (int iteration = 0; iteration < iter; iteration++) {
     printf("Starting epoch: %d\n", iteration);
+    memset(thread_losses, 0, sizeof(real) * num_threads);
     for (a = 0; a < num_threads; a++) pthread_create(&pt[a], NULL, TrainModelThread, (void *)a);
     for (a = 0; a < num_threads; a++) pthread_join(pt[a], NULL);
+    real total_loss_epoch = 0;
+    for (a = 0; a < num_threads; a++) total_loss_epoch += thread_losses[a];
+    printf("Epoch Loss: %f\n", total_loss_epoch);
     char output_file_cur_iter[MAX_STRING] = {0};
     sprintf(output_file_cur_iter, "%s_epoch%d", output_file, iteration);
     fo = fopen(output_file_cur_iter, "wb");
