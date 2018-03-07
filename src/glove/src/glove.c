@@ -22,6 +22,7 @@
 //    http://nlp.stanford.edu/projects/glove/
 
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -217,36 +218,6 @@ int save_params(int nb_iter) {
     char *word = malloc(sizeof(char) * MAX_STRING_LENGTH + 1);
     FILE *fid, *fout, *fgs;
 
-    // Quantize all values (Except biases)
-    for (a = 0; a < 2*vocab_size; a++) {
-      for (b = 0; b < vector_size; b++) {
-	int index = a * (vector_size+1) + b;
-	W[index] = quantize(W[index], 1);
-      }
-    }
-    
-    if (use_binary > 0) { // Save parameters in binary file
-        if (nb_iter <= 0)
-            sprintf(output_file,"%s.bin",save_W_file);
-        else
-            sprintf(output_file,"%s.%03d.bin",save_W_file,nb_iter);
-
-        fout = fopen(output_file,"wb");
-        if (fout == NULL) {fprintf(stderr, "Unable to open file %s.\n",save_W_file); return 1;}	
-        for (a = 0; a < 2 * (long long)vocab_size * (vector_size + 1); a++) fwrite(&W[a], sizeof(real), 1,fout);
-        fclose(fout);
-        if (save_gradsq > 0) {
-            if (nb_iter <= 0)
-                sprintf(output_file_gsq,"%s.bin",save_gradsq_file);
-            else
-                sprintf(output_file_gsq,"%s.%03d.bin",save_gradsq_file,nb_iter);
-
-            fgs = fopen(output_file_gsq,"wb");
-            if (fgs == NULL) {fprintf(stderr, "Unable to open file %s.\n",save_gradsq_file); return 1;}
-            for (a = 0; a < 2 * (long long)vocab_size * (vector_size + 1); a++) fwrite(&gradsq[a], sizeof(real), 1,fgs);
-            fclose(fgs);
-        }
-    }
     if (use_binary != 1) { // Save parameters in text file
         if (nb_iter <= 0)
             sprintf(output_file,"%s.txt",save_W_file);
@@ -273,13 +244,13 @@ int save_params(int nb_iter) {
             if (strcmp(word, "<unk>") == 0) return 1;
             fprintf(fout, "%s",word);
             if (model == 0) { // Save all parameters (including bias)
-                for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", W[a * (vector_size + 1) + b]);
-                for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", W[(vocab_size + a) * (vector_size + 1) + b]);
+	      for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", quantize(W[a * (vector_size + 1) + b], 1));
+	      for (b = 0; b < (vector_size + 1); b++) fprintf(fout," %lf", quantize(W[(vocab_size + a) * (vector_size + 1) + b], 1));
             }
             if (model == 1) // Save only "word" vectors (without bias)
-                for (b = 0; b < vector_size; b++) fprintf(fout," %lf", W[a * (vector_size + 1) + b]);
+	        for (b = 0; b < vector_size; b++) fprintf(fout," %lf", quantize(W[a * (vector_size + 1) + b], 1));
             if (model == 2) // Save "word + context word" vectors (without bias)
-                for (b = 0; b < vector_size; b++) fprintf(fout," %lf", W[a * (vector_size + 1) + b] + W[(vocab_size + a) * (vector_size + 1) + b]);
+	        for (b = 0; b < vector_size; b++) fprintf(fout," %lf", quantize(W[a * (vector_size + 1) + b] + W[(vocab_size + a) * (vector_size + 1) + b], 1));
             fprintf(fout,"\n");
             if (save_gradsq > 0) { // Save gradsq
                 fprintf(fgs, "%s",word);
