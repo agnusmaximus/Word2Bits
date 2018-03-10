@@ -1,5 +1,7 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
 \BOOKMARK [1][-]{section.2}{Related Work}{}% 2
 \BOOKMARK [1][-]{section.3}{Word2Bits - Quantized Word Embeddings}{}% 3
-\BOOKMARK [1][-]{section.4}{Experiments and Results}{}% 4
-\BOOKMARK [1][-]{section.5}{Discussion and Future Work}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{Background}{section.3}% 4
+\BOOKMARK [2][-]{subsection.3.2}{Word2Bits Approach}{section.3}% 5
+\BOOKMARK [1][-]{section.4}{Experiments and Results}{}% 6
+\BOOKMARK [1][-]{section.5}{Discussion and Future Work}{}% 7

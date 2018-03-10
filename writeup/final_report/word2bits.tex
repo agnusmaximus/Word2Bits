@@ -1,9 +1,15 @@
 \documentclass{article} % For LaTeX2e
 \usepackage{nips13submit_e,times}
 \usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 \usepackage{url}
 %\documentstyle[nips13submit_09,times,art10]{article} % For LaTeX 2.09
 
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
 
 \title{Word2Bits - Quantized Word Vectors}
 
@@ -27,30 +33,31 @@ Maximilian Lam\\
 Word vectors require significant amounts of memory and storage, posing
 issues to resource limited devices like mobile phones and GPUs. We
 show that high quality quantized word vectors using 1-2 bits per
-parameter can be learned by training word2vec with a quantization
+parameter can be learned by training Word2Vec with a quantization
 function. We furthermore show that training with the quantization
-function acts as a regularizer. We evaluate our word vectors on
-standard word similarity and analogy tasks and on question answering
-(SQuAD). Our final word vectors not only take 10-16x less space than
-full precision (32 bit) word vectors but also outperform them on word
-similarity tasks and question answering.
+function acts as a regularizer. We train word vectors on full english
+Wikipedia (2017) and evaluate them on standard word similarity and
+analogy tasks and on question answering (SQuAD). Our quantized word
+vectors not only take 10-16x less space than full precision (32 bit)
+word vectors but also outperform them on word similarity tasks and
+question answering.
 \end{abstract}
 
 \section{Introduction}
 Word vectors are extensively used in deep learning models for natural
 language processing. Each word vector is typically represented as a
 300-500 dimensional vector, with each parameter being 32 bits. As
-there may be millions of words, word vectors may take up to 3-6 GB of
+there are millions of words, word vectors may take up to 3-6 GB of
 memory/storage -- a massive amount relative to other portions of a
 deep learning model[1]. These requirements pose issues to
 memory/storage limited devices like mobile phones and GPUs.
 
-Furthermore, word vectors are often trained from scratch on application specific
+Furthermore, word vectors are often re-trained on application specific
 data for better performance in application specific domains[1]. This
 motivates directly learning high quality compact word representations
 rather than adding an extra layer of compression on top of pretrained
 word vectors which may be computational expensive and degrade
-performance.
+accuracy.
 
 Recent trends indicate that deep learning models can reach a high
 accuracy even while training in the presence of significant noise and
@@ -62,32 +69,213 @@ is only one of two values, or one of four values (quantizing to 1 and
 2 bits respectively)?
 
 To that end we propose learning quantized word vectors by introducing
-a quantization function into the word2vec loss formulation -- we call
-our simple change word2bits. While introducing a quantization function
+a quantization function into the Word2Vec loss formulation -- we call
+our simple change Word2Bits. While introducing a quantization function
 into a loss function is not new, to the best of our knowledge it is
-the first time it has been applied successfully to learning word
-vectors.
+the first time it has been applied to learning compact word representations.
 
 In this report we show that
 \begin{enumerate}
 \item[$\bullet$]
 
-  It is possible to learn high quality quantized word vectors which
+  It is possible to train high quality quantized word vectors which
   take 10x-16x less storage/memory than full precision word
   vectors. Experiments on both intrinsic and extrinsic tasks show that
   our learned word vectors perform comparably or even better on many tasks.
 
 \item[$\bullet$]
 
-  Standard word2vec may be prone to overfitting; the quantization
+  Standard Word2Vec may be prone to overfitting; the quantization
   function acts as a regularizer against it.
 
 \end{enumerate}
 
 \section{Related Work}
+Word vectors are continuous representations of words and are used by
+most deep learning NLP models. Word2Vec, introduced by Mikolov's
+groundbreaking papers[1], is a unsupervised neural network algorithm for
+learning word vectors from textual data. Since then, other
+groundbreaking algorithms (Glove, FastText) [1] have been proposed to
+learn word vectors using other properties of textual data. As of 2018
+the most widely used word vectors are Glove, Word2Vec and
+FastText. This work focuses on how to learn memory/storage efficient
+word vectors through quantized training -- specifically our approach
+extends Word2Vec to output high quality quantized word vectors.
 
+Learning compact word vectors is related to learning compressed neural
+networks. Finding compact representations of neural
+networks date back to the 90's and include techniques like network
+pruning[1], knowledge distillation[1], deep compression[1] and
+quantization[1]. More recently, algorithmic and hardware advances have
+allowed training deep models using low precision floating-point and
+arithmetic operations[1] -- this is also referred to as
+quantization. To distinguish between quantized training with low
+precision arithmetic/floats from quantized training with full
+precision arithmetic/floats but constrained values we term the first
+physical quantization and the latter virtual quantization.
+
+Our technical approach follows that of neural network quantization for
+image classification[1], which does virtual quantization by
+introducing a sign function (a 1 bit quantization function) into the
+training loss function. The actual technique of backpropagating through a
+discrete function (the quantization function) has been thoroughly
+explored by Hinton[1] and Bengio[1].
+
+Application wise, various techniques exist to compress word
+embeddings[1]. These approaches involve taking pre-trained word
+vectors and compressing them using dimensionality reduction[1],
+pruning[1], or more complicated approaches like deep compositional
+coding[1]. Such techniques add an extra layer of computation to
+compress pre-trained embeddings and also may degrade word vector
+performance[1].
+
+To the best of our knowledge, current traditional methods of obtaining
+compact word vectors involve adding an extra layer of computation to
+compress pretrained word vectors[1] (as described previously). This
+may incur computational costs which may be expensive in context of
+retraining word vectors for application specific purposes and may
+degrade word vector performance[1]. Our proposed approach of directly
+learning quantized word vectors from textual data may amend these
+issues and is an alternative method of obtaining compact high quality
+word vectors. Note that these traditional compression methods may
+still be applied on the learned quantized word vectors.
 
 \section{Word2Bits - Quantized Word Embeddings}
+\subsection{Background}
+Our approach utilizes the Word2Vec formulation of learning word vectors. There
+are two Word2Vec algorithms: Skip Gram Negative Sampling (SGNS) and
+Continuous Bag of Words (CBOW)[1] -- our virtual quantization
+technique utilizes CBOW with negative sampling. The CBOW negative
+sampling loss function minimizes
+
+$$
+J(u_o, \hat{v}_c) = -log(\sigma(u_o^T\hat{v}_c)) - \sum_{i=1}^{k} log(\sigma(-u_i^T\hat{v}_c))
+$$
+
+where
+
+$$
+u_o = \mbox{ vector of center word with corpus position } o
+$$
+$$
+\hat{v}_c = \frac{1}{2w-1}\sum_{-w+o \leq i \leq w+o,i \neq o} v_i \mbox{  where } v_i \mbox{ is vector for context word, } w \mbox{ is window size, a hyperparameter}
+$$
+$$
+k = \mbox{ number of negative samples, a hyperparameter}
+$$
+
+Intuitively, minimizing this loss function optimizes vectors of
+words that occur in similar contexts to be ``closer'' to each other,
+and pushes vectors whose contexts are different ``away''. Specifically CBOW with negative sampling tries to predict the
+center word from context words.
+
+Technically, to optimize this loss function, for each sentence we:
+
+\begin{enumerate}
+
+\item[$\bullet$] Identify the center word $u_o$
+\item[$\bullet$] Compute the average of the context words $\hat{v}_c = \frac{1}{2w-1} \sum_{-w+o \leq i \leq w+o, i \neq o} v_i$ given window size $w$
+\item[$\bullet$] Draw $k$ negative samples $u_1, u_2, .., u_k$
+\item[$\bullet$] Compute loss $J(u_o, \hat{v}_c) = -log(\sigma(u_o^T\hat{v}_c)) - \sum_{i=1}^{k} log(\sigma(-u_i^T\hat{v}_c))$
+\item[$\bullet$] Update center word vector $u_o$ with gradient $\frac{\partial J(u_o, \hat{v}_c)}{\partial u_o}$
+\item[$\bullet$] Update negative word vector $u_i$ with gradient $\frac{\partial J(u_o, \hat{v}_c)}{\partial u_i}$
+\item[$\bullet$] Update context word vector $v_i$ with gradient $\frac{\partial J(u_o, \hat{v}_c)}{\partial v_i}$
+\end{enumerate}
+
+Center vectors $u_i$ and context vectors $v_j$ are stored full
+precision. The final word vectors are the sums of the context and
+center vectors $u_i + v_i$ for each corresponding word. The resulting
+vectors are full precision.
+
+\subsection{Word2Bits Approach}
+To learn quantized word vectors we introduce virtual quantization into the CBOW loss function:
+$$
+J_{quantized}(u^{(q)}_o, \hat{v}^{(q)}_c) = -log(\sigma((u^{(q)}_{o})^{T} \hat{v}^{(q)}_c)) - \sum_{i=1}^{k} log(\sigma((-u^{(q)}_i)^T\hat{v}^{(q)}_c))
+$$
+
+where
+
+$$
+u^{(q)}_o = Q_{bitlevel}(u_o)
+$$
+
+$$
+\hat{v}^{(q)}_c = \sum_{-w+o \leq i \leq w+o,i \neq o} Q_{bitlevel}(v_i)
+$$
+
+$$
+Q_{bitlevel}(x) = \mbox{ quantization function to quantize to } bitlevel \mbox{ bits}
+$$
+
+The following quantization functions were used (chosen based on what worked best)
+
+\[
+Q_1(x) =
+\begin{cases}
+  \frac{1}{3} & x \geq 0\\
+  -\frac{1}{3} & x < 0
+\end{cases}
+\]
+
+
+\[
+Q_2(x) =
+\begin{cases}
+  \frac{3}{4} & x > \frac{1}{2}\\
+  \frac{1}{4} & 0 \leq x \leq \frac{1}{2}\\
+  -\frac{1}{4} & -\frac{1}{2} \leq x < 0\\
+  -\frac{3}{4} & x < -\frac{1}{2}
+\end{cases}
+\]
+
+Since $Q_{bitlevel}$ is a discrete function, its derivative is
+undefined at some points and 0 at others. To solve this we simply set
+the derivative of $Q_{bitlevel}$ to be the identity function:
+
+$$
+\frac{\partial Q_{bitlevel}(x)}{\partial x} = x
+$$
+
+This is also known as Hinton's straight-through estimator[1].
+
+Like in the standard algorithm, we optimize $J_{quantized}$ with
+respect to $u_i$ and $v_j$ over a corpus of text. The final vector
+for each word is $Q_{bitlevel}(u_i + v_i)$; thus each parameter takes
+$bitlevel$ bits to represent.
+
+Intuitively, although we are still updating $u_i$ and $v_j$ (full
+precision vectors), we are now optimizing their quantized
+counterparts $Q_{bitlevel}(u_i)$ and $Q_{bitlevel}(v_j)$ to capture
+the same corpus statistics as regular word vectors. While we are still
+training with full precision 32-bit arithmetic operations and 32-bit floating
+point values, the final word vectors we save to disk are
+quantized. The full process is presented below.
+
+\begin{algorithm}
+\caption{Word2Bits}\label{euclid}
+\begin{algorithmic}[1]
+\Procedure{MyProcedure}{}
+\State $\textit{stringlen} \gets \text{length of }\textit{string}$
+\State $i \gets \textit{patlen}$
+\BState \emph{top}:
+\If {$i > \textit{stringlen}$} \Return false
+\EndIf
+\State $j \gets \textit{patlen}$
+\BState \emph{loop}:
+\If {$\textit{string}(i) = \textit{path}(j)$}
+\State $j \gets j-1$.
+\If {$\textit{string}(i) = \textit{path}(j)$}
+\State what
+\EndIf
+\State $i \gets i-1$.
+\State \textbf{goto} \emph{loop}.
+\State \textbf{close};
+\EndIf
+\State $i \gets i+\max(\textit{delta}_1(\textit{string}(i)),\textit{delta}_2(j))$.
+\State \textbf{goto} \emph{top}.
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
 \section{Experiments and Results}
 
@@ -131,4 +319,5 @@ In this report we show that
 - Low precision arithmetic for deep learning.
 - Predicting parameters in deep learning
 - Compressing neural networks with the hashing trick
+- Compression of Neural Machine Translation Models via Pruning
 \end{document}
