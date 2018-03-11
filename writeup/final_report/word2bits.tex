@@ -1,9 +1,12 @@
 \documentclass{article} % For LaTeX2e
 \usepackage{nips13submit_e,times}
+\usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{algorithm}
+\usepackage{multirow}
 \usepackage[noend]{algpseudocode}
+\usepackage{multirow,multicol, makecell, booktabs}
 \usepackage{url}
 %\documentstyle[nips13submit_09,times,art10]{article} % For LaTeX 2.09
 
@@ -93,7 +96,7 @@ In this report we show that
 \section{Related Work}
 Word vectors are continuous representations of words and are used by
 most deep learning NLP models. Word2Vec, introduced by Mikolov's
-groundbreaking papers[1], is a unsupervised neural network algorithm for
+groundbreaking papers[1], is an unsupervised neural network algorithm for
 learning word vectors from textual data. Since then, other
 groundbreaking algorithms (Glove, FastText) [1] have been proposed to
 learn word vectors using other properties of textual data. As of 2018
@@ -126,7 +129,7 @@ embeddings[1]. These approaches involve taking pre-trained word
 vectors and compressing them using dimensionality reduction[1],
 pruning[1], or more complicated approaches like deep compositional
 coding[1]. Such techniques add an extra layer of computation to
-compress pre-trained embeddings and also may degrade word vector
+compress pre-trained embeddings and may degrade word vector
 performance[1].
 
 To the best of our knowledge, current traditional methods of obtaining
@@ -169,13 +172,13 @@ words that occur in similar contexts to be ``closer'' to each other,
 and pushes vectors whose contexts are different ``away''. Specifically CBOW with negative sampling tries to predict the
 center word from context words.
 
-Technically, to optimize this loss function, for each sentence we:
+Technically, to optimize this loss function, for each window of words:
 
 \begin{enumerate}
 
-\item[$\bullet$] Identify the center word $u_o$
+\item[$\bullet$] Identify the center word's vector $u_o$ within the window
 \item[$\bullet$] Compute the average of the context words $\hat{v}_c = \frac{1}{2w-1} \sum_{-w+o \leq i \leq w+o, i \neq o} v_i$ given window size $w$
-\item[$\bullet$] Draw $k$ negative samples $u_1, u_2, .., u_k$
+\item[$\bullet$] Draw $k$ negative samples $u_1, u_2, .., u_k$ according to a sampling distribution [1].
 \item[$\bullet$] Compute loss $J(u_o, \hat{v}_c) = -log(\sigma(u_o^T\hat{v}_c)) - \sum_{i=1}^{k} log(\sigma(-u_i^T\hat{v}_c))$
 \item[$\bullet$] Update center word vector $u_o$ with gradient $\frac{\partial J(u_o, \hat{v}_c)}{\partial u_o}$
 \item[$\bullet$] Update negative word vector $u_i$ with gradient $\frac{\partial J(u_o, \hat{v}_c)}{\partial u_i}$
@@ -233,10 +236,21 @@ undefined at some points and 0 at others. To solve this we simply set
 the derivative of $Q_{bitlevel}$ to be the identity function:
 
 $$
-\frac{\partial Q_{bitlevel}(x)}{\partial x} = x
+\frac{\partial Q_{bitlevel}(x)}{\partial x} = I
 $$
 
 This is also known as Hinton's straight-through estimator[1].
+
+The final gradient updates reduce to Word2Vec updates. They are:
+$$
+\mbox{For center word } u_o \textbf{: } \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{u_o} = \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{u^{(q)}_o}
+$$
+$$
+\mbox{For negative word } u_i \textbf{: } \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{u_i} = \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{u^{(q)}_i}
+$$
+$$
+\mbox{For context word } v_i \textbf{: } \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{v_i} = \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{v^{(q)}_i}
+$$
 
 Like in the standard algorithm, we optimize $J_{quantized}$ with
 respect to $u_i$ and $v_j$ over a corpus of text. The final vector
@@ -249,36 +263,99 @@ counterparts $Q_{bitlevel}(u_i)$ and $Q_{bitlevel}(v_j)$ to capture
 the same corpus statistics as regular word vectors. While we are still
 training with full precision 32-bit arithmetic operations and 32-bit floating
 point values, the final word vectors we save to disk are
-quantized. The full process is presented below.
-
-\begin{algorithm}
-\caption{Word2Bits}\label{euclid}
-\begin{algorithmic}[1]
-\Procedure{MyProcedure}{}
-\State $\textit{stringlen} \gets \text{length of }\textit{string}$
-\State $i \gets \textit{patlen}$
-\BState \emph{top}:
-\If {$i > \textit{stringlen}$} \Return false
-\EndIf
-\State $j \gets \textit{patlen}$
-\BState \emph{loop}:
-\If {$\textit{string}(i) = \textit{path}(j)$}
-\State $j \gets j-1$.
-\If {$\textit{string}(i) = \textit{path}(j)$}
-\State what
-\EndIf
-\State $i \gets i-1$.
-\State \textbf{goto} \emph{loop}.
-\State \textbf{close};
-\EndIf
-\State $i \gets i+\max(\textit{delta}_1(\textit{string}(i)),\textit{delta}_2(j))$.
-\State \textbf{goto} \emph{top}.
-\EndProcedure
-\end{algorithmic}
-\end{algorithm}
+quantized.
 
 \section{Experiments and Results}
+\subsection{Intrinsic Experiments - Word Similarity and Analogy}
+\textbf{Word Vector Training Methodology}
 
+We train word vectors with varying levels of precision and dimension
+on the 2017 English Wikipedia dump (24G of text). We normalize the
+text similar to FastText[1], however we keep the text case
+sensitive. We train all word vectors for 25 epochs. We use the
+following hyperparameters: window size = 10, negative sample size =
+12, min count = 5, subsampling = 1e-4, learning rate = .05 (which is
+linearly decayed to 0.0001). Our final vocabulary size is 3.7 million
+after filtering words that appear less than min count = 5 times. In
+our intrinsic experiments we additionally report the scores of
+thresholded vectors (denoted T1) which are computed by taking
+trained full precision vectors and applying the 1-bit quantization function
+on them.
+
+\textbf{Test Datasets and Evaluation}
+
+Our evaluation procedure follows that of [1]. We use six datasets to
+evaluate word similarity and two datasets to evaluate word
+analogy. The word similarity test datasets are: WordSim353 Similarity
+[1], WordSim353 Relatedness [1], MEN [1], Mechanical Turk [1], Rare
+Words [1] and Simlex[1]. The word analogy test datasets are Google's
+analogy dataset [1] and MSR's analogy dataset[2]. For Google's analogy
+dataset we uppercase the first character of proper nouns. To evalute
+word similarity, word vectors are ranked by cosine similarity; the
+reported score is correlation with human rankings[1]. To answer word
+analogy questions we use two methods: 3CosAdd (Add) and 3CosMul (Mul)
+as detailed in [1]; the reported score is percentage of questions for
+which the argmax vector was the correct answer.
+
+\textbf{Results}
+
+Table 1 shows results of the full intrinsic evaluation. These data
+indicate that quantized word vectors perform comparably with full
+precision word vectors on many intrinsic tasks. Interestingly,
+quantized word vectors outperform full precision vectors on word
+similarity tasks, but do worse on word analogy tasks. Thresholded word
+vectors perform consistently worse than their full precision
+counterparts across all tasks.
+
+\begin{table}[t]
+\caption{Word similarity and analogy results}
+\label{intrinsic-table}
+\begin{center}
+\resizebox{\textwidth}{!}{\begin{tabular}{ |c|cc|cccccc|cc| }
+\hline
+\makecell{Type} &
+\makecell{\# Bits} &
+\makecell{Dimension} &
+\makecell{WordSim \\ Similarity} &
+\makecell{WordSim \\ Relatedness} &
+\makecell{MEN} &
+\makecell{M. Turk} &
+\makecell{Rare \\ Words} &
+\makecell{SimLex} &
+\makecell{Google \\ Add / Mul} &
+\makecell{MSR \\ Add / MUL} \\
+\hline
+
+\multirow{4}{6em}{Full Precision}
+& 32 & 200 & .740 & .567 & .716 & .635 & .403 & .317 & .706/.702 & .447/.447\\
+& 32 & 400 & .735 & .533 & .720 & .623 & .408 & .335 & \textbf{.722}/.734 & \textbf{.473}/.486\\
+& 32 & 800 & .726 & .500 & .713 & .615 & .395 & .337 & .719/.735 & .471/\textbf{.489}\\
+& 32 & 1000 & .741 & .529 & .745 & .617 & .400 & .358 & .664/.675 & .423/.434\\
+\hline
+\multirow{4}{6em}{\makecell{Thresholded}}
+& T1 & 200 & .692 & .480 & .668 & .575 & .347 & .288 & .371/.369 & .186/.182\\
+& T1 & 400 & .677 & .446 & .686 & .581 & .369 & .321 & .533/.540 & .286/.292\\
+& T1 & 800 & .728 & .494 & .692 & .576 & .383 & .338 & .599/.609 & .333/.346\\
+& T1 & 1000 & .689 & .504 & .694 & .551 & .358 & .342 & .521/.520 & .303/.305\\
+\hline
+\multirow{6}{6em}{\makecell{Quantized}}
+& 1 & 800 & .772 & .653 & .746 & .612 & .417 & .355 & .619/.660 & .395/.390\\
+& 1 & 1000 & .768 & \textbf{.677} & .756 & .638 & \textbf{.425} & .372 & .650/.660 & .371/.408\\
+& 1 & 1200 & \textbf{.781} & .628 & .765 & \textbf{.643} & .415 & .379 & .659/.692 & .391/.429\\
+& 2 & 400 & .752 & .604 & .741 & .616 & .417 & .373 & .666/.690 & .396/.418\\
+& 2 & 800 & .776 & .634 & \textbf{.767} & .646 & .390 & \textbf{.403} & .710/.739 & .418/.460\\
+& 2 & 1000 & .752 & .594 & .764 & .602 & .362 & .387 & .720/\textbf{.750} & .436/.482\\
+\hline
+
+\hline
+
+\end{tabular}}
+\end{center}
+\end{table}
+
+
+\subsection{Extrinsic Experiments - SQuAD}
+\subsection{Word2Bits and Regularization}
 \section{Discussion and Future Work}
 
 \subsubsection*{Acknowledgments}
