@@ -492,7 +492,7 @@ performing well on word analogy tasks require a higher number of bits
 per word while doing well on word similarity tasks require
 fewer. Another interesting observation is that performance on the
 intrinsic tasks did not really predict performance on extrinsic tasks
-(SQuAD) -- this validates the findings of [3, 12]. Finally we have shown
+(SQuAD) -- this validates the findings of [3, 12]. We  have also shown
 that full precision Word2Vec training is prone to overfitting (across
 training epochs and across word vector dimension) on smaller datasets
 (100MB of Wikipedia); this suggests it is not always better to train
@@ -510,7 +510,7 @@ Common Crawl or Google News. Another task is to validate that
 overfitting occurs on larger datasets (full english Wikipedia) with
 respect to various tasks (other intrinsic tasks, extrinsic
 tasks). Finally, we believe it is possible to do virtually quantized
-training on Glove, though initial experiments suggest that
+training with Glove, though initial experiments suggest that
 several modifications to the loss function are needed to make it work.
 
 \subsubsection*{Acknowledgments}
