@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  12 MAR 2018 23:48
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  13 MAR 2018 14:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -535,8 +535,13 @@ File: images/Wiki8AccuracyVsEpochsTrainedDimension=400.pdf Graphic file (type p
 df)
  <use images/Wiki8AccuracyVsEpochsTrainedDimension=400.pdf>
 Package pdftex.def Info: images/Wiki8AccuracyVsEpochsTrainedDimension=400.pdf u
-sed on input line 473.
+sed on input line 474.
 (pdftex.def)             Requested size: 170.71652pt x 128.0372pt.
+
+Underfull \hbox (badness 2837) in paragraph at lines 474--474
+[]\OT1/ptm/m/n/9 (a) |Train-ing loss and ac-cu-racy vs epochs
+ []
+
 
 <images/Wiki8AccuracyVsDimensionEpochsTrained=10.pdf, id=83, 462.52798pt x 346.
 89601pt>
@@ -544,39 +549,40 @@ File: images/Wiki8AccuracyVsDimensionEpochsTrained=10.pdf Graphic file (type pd
 f)
  <use images/Wiki8AccuracyVsDimensionEpochsTrained=10.pdf>
 Package pdftex.def Info: images/Wiki8AccuracyVsDimensionEpochsTrained=10.pdf us
-ed on input line 475.
+ed on input line 476.
 (pdftex.def)             Requested size: 170.71652pt x 128.0372pt.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 525.
  [6 <./images/Wiki8AccuracyVsEpochsTrainedDimension=400.pdf> <./images/Wiki8Acc
 uracyVsDimensionEpochsTrained=10.pdf
 
 pdfTeX warning: pdflatex (file ./images/Wiki8AccuracyVsDimensionEpochsTrained=1
 0.pdf): PDF inclusion: multiple pdfs with page group included in a single page
 >] [7]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 525.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 679.
+ [8]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 679.
  (./word2bits.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 525.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 525.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 679.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 679.
 Package rerunfilecheck Info: File `word2bits.out' has not changed.
-(rerunfilecheck)             Checksum: 566E7C193F50E8AF1AA7508CF8468F5E;753.
+(rerunfilecheck)             Checksum: ED369D5F079B1A9C069779C32CFDBAEB;753.
 
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 525.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 679.
  )
 (\end occurred inside a group at level 1)
 
-### simple group (level 1) entered at line 489 ({)
+### simple group (level 1) entered at line 565 ({)
 ### bottom level 
 Here is how much of TeX's memory you used:
- 8452 strings out of 493117
- 125742 string characters out of 6135433
- 241233 words of memory out of 5000000
- 11778 multiletter control sequences out of 15000+600000
+ 8454 strings out of 493117
+ 125756 string characters out of 6135433
+ 241275 words of memory out of 5000000
+ 11779 multiletter control sequences out of 15000+600000
  18462 words of font info for 40 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 44i,18n,47p,305b,394s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 44i,18n,47p,349b,394s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8r.enc
 }</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb>
 </usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
@@ -590,10 +596,10 @@ exlive/2014/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2
 014/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2014/texmf-
 dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts
 /type1/urw/times/utmri8a.pfb>
-Output written on word2bits.pdf (7 pages, 171228 bytes).
+Output written on word2bits.pdf (8 pages, 184038 bytes).
 PDF statistics:
- 235 PDF objects out of 1000 (max. 8388607)
- 134 compressed objects within 2 object streams
- 26 named destinations out of 1000 (max. 500000)
+ 239 PDF objects out of 1000 (max. 8388607)
+ 137 compressed objects within 2 object streams
+ 27 named destinations out of 1000 (max. 500000)
  99 words of extra memory for PDF output out of 10000 (max. 10000000)
 
