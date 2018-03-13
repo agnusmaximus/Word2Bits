@@ -1,6 +1,7 @@
 \documentclass{article} % For LaTeX2e
 \usepackage{nips13submit_e,times}
 \usepackage{graphicx}
+\usepackage{subfig}
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{algorithm}
@@ -41,7 +42,7 @@ function. We furthermore show that training with the quantization
 function acts as a regularizer. We train word vectors on full english
 Wikipedia (2017) and evaluate them on standard word similarity and
 analogy tasks and on question answering (SQuAD). Our quantized word
-vectors not only take 10-16x less space than full precision (32 bit)
+vectors not only take 8-16x less space than full precision (32 bit)
 word vectors but also outperform them on word similarity tasks and
 question answering.
 \end{abstract}
@@ -82,7 +83,7 @@ In this report we show that
 \item[$\bullet$]
 
   It is possible to train high quality quantized word vectors which
-  take 10x-16x less storage/memory than full precision word
+  take 8x-16x less storage/memory than full precision word
   vectors. Experiments on both intrinsic and extrinsic tasks show that
   our learned word vectors perform comparably or even better on many tasks.
 
@@ -243,13 +244,13 @@ This is also known as Hinton's straight-through estimator[1].
 
 The final gradient updates reduce to Word2Vec updates. They are:
 $$
-\mbox{For center word } u_o \textbf{: } \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{u_o} = \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{u^{(q)}_o}
+\mbox{For center word } u_o \textbf{: } \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{\partial u_o} = \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{\partial u^{(q)}_o}
 $$
 $$
-\mbox{For negative word } u_i \textbf{: } \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{u_i} = \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{u^{(q)}_i}
+\mbox{For negative word } u_i \textbf{: } \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{\partial u_i} = \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{\partial u^{(q)}_i}
 $$
 $$
-\mbox{For context word } v_i \textbf{: } \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{v_i} = \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{v^{(q)}_i}
+\mbox{For context word } v_i \textbf{: } \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{\partial v_i} = \frac{\partial J_{quantized} (u^{(q)}_o, \hat{v}^{(q)}_c)}{\partial v^{(q)}_i}
 $$
 
 Like in the standard algorithm, we optimize $J_{quantized}$ with
@@ -371,8 +372,8 @@ is 3.7 million after filtering words that appear less than min count =
 
 \textbf{SQuAD Model}
 
-We train Facebook's official DrQA[1] model for the Stanford Question Answering
-task (SQuAD) task using our word vectors. Implementation details and
+Using our word vectors, we train Facebook's official DrQA[1] model for the Stanford Question Answering
+task (SQuAD). Implementation details and
 hyperparameters follow[1] with the following differences: word
 embeddings are fixed (instead of allowing the top 1000 to be fine
 tuned) and the model is trained for 50 epochs (instead of 40). Note
@@ -382,43 +383,47 @@ that the DrQA model is trained entirely in full precision.
 
 Table 2 shows F1 scores attained by full precision vectors and
 quantized vectors on SQuAD. The data show that quantized vectors
-outperform full precision vectors by around 1 F1 point. Interestingly,
-we noticed a sharp drop in F1 score from 32-bit 800 dimensional
-vectors (F1=75.31) to 32-bit 1000 dimensional vectors (F1=9.99). Upon
-inspection of the 32-bit 1000 dimensional word vectors, we found that
-parameter values had ``exploded'' to large absolute magnitudes
-({\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}} 1000000). Intrinsic
-tasks were unaffected by this phenomena as vectors were normalized
-before processing them (unlike the default DrQA code which does not
-normalize the word vectors). We believe that normalizing the full
-precision 1000 dimensional vectors would yield better scores.
+outperform full precision vectors by around 1 F1 point; the best
+performing word vector (400 dimensional 2-bit word vectors) uses 100
+bytes per word, which is 8x-16x less than full precision word
+vectors. Interestingly, there is a sharp drop in F1 score from
+32-bit 800 dimensional vectors (F1=75.31) to 32-bit 1000 dimensional
+vectors (F1=9.99). Upon inspection of the 32-bit 1000 dimensional word
+vectors, we found that parameter values had ``exploded'' to large
+absolute magnitudes ({\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}
+1000000). Intrinsic tasks were unaffected by this phenomena as vectors
+were normalized before processing them (unlike the default DrQA code
+which does not normalize the word vectors). We believe that
+normalizing the full precision 1000 dimensional vectors would yield
+better scores.
 
 
 \begin{table}[t]
-\caption{DrQA SQuAD results on full precision and quantized word vectors}
+\caption{DrQA SQuAD results and vector sizes for full precision and quantized word vectors}
 \label{intrinsic-table}
 \begin{center}
-\begin{tabular}{ |c|cc|c|}
+\begin{tabular}{ |c|cc|c|c|}
 \hline
 \makecell{Word Vector Type} &
 \makecell{Bits per \\ parameter} &
 \makecell{Dimension} &
+\makecell{Bytes per word} &
 \makecell{F1} \\
 \hline
 
 \multirow{4}{6em}{Full Precision}
-& 32 & 200 & 75.25\\
-& 32 & 400 & 75.28\\
-& 32 & 800 & 75.31\\
-& 32 & 1000 & 9.99\\
+& 32 & 200 & 800 & 75.25\\
+& 32 & 400 & 1600 & 75.28\\
+& 32 & 800 & 3200 & 75.31\\
+& 32 & 1000 & 4000 & 9.99\\
 \hline
 \multirow{6}{6em}{\makecell{Quantized}}
-& 1 & 800 & 76.64\\
-& 1 & 1000 & 76.84\\
-& 1 & 1200 & 76.50\\
-& 2 & 400 & \textbf{77.04}\\
-& 2 & 800 & 76.12\\
-& 2 & 1000 & 75.66\\
+& 1 & 800 & 100 & 76.64\\
+& 1 & 1000 & 125 & 76.84\\
+& 1 & 1200 & 150 & 76.50\\
+& 2 & 400 & 100 & \textbf{77.04}\\
+& 2 & 800 & 200 & 76.12\\
+& 2 & 1000 & 250 & 75.66\\
 \hline
 
 \hline
@@ -428,6 +433,53 @@ precision 1000 dimensional vectors would yield better scores.
 \end{table}
 
 \subsection{Word2Bits and Regularization}
+
+\textbf{Experiment Details}
+
+To understand why quantized word vectors perform consistently better
+on word similarity and question answering we train word vectors on
+100MB of wikipedia (text8; case insensitive; Matt Mahoney
+processed)[1] with the following hyperparameters:
+
+\begin{enumerate}
+\item[$\bullet$] Window size = 10
+\item[$\bullet$] Negative sample size = 24
+\item[$\bullet$] Subsampling = 1e-4
+\item[$\bullet$] Min count = 5
+\item[$\bullet$] Learning rate = .05 (linearly decayed to .0001)
+\item[$\bullet$] Number of training epochs = [1, 10, 25, 50]
+\item[$\bullet$] Bits per parameter = [1, 32]
+\item[$\bullet$] Dimension = [100, 200, 400, 600, 800, 1000]
+\end{enumerate}
+
+For each individual run we track Google analogy score and end training loss.
+
+\textbf{Results and Analysis}
+
+Figure 1a shows training loss and accuracy versus epochs of training
+(with vector dimension fixed at 400); figure 1b shows training loss
+and accuracy versus vector dimension (with the number of epochs fixed
+at 10). Figure 1a indicates that full precision Word2Vec is prone to overfitting with
+increased epochs of training; quantized training does not seem to
+suffer as much from this. Figure 1b indicates that full precision Word2vec is prone
+to overfitting with increased dimensions; quantized training performs
+poorly with fewer dimensions and better with larger dimensions. While
+100MB is too small a dataset to make a decisive conclusion, the trends
+strongly hint that overfitting is an issue for Word2Vec and that
+quantized training may be a form of regularization.
+
+\begin{figure}%
+    \centering
+    \subfloat[Training loss and accuracy vs epochs trained (vector dimension = 400)]{{\includegraphics[width=6cm]{images/Wiki8AccuracyVsEpochsTrainedDimension=400.pdf}}}%
+    \qquad
+    \subfloat[Training loss and accuracy vs dimension (epochs trained = 10)]{{\includegraphics[width=6cm]{images/Wiki8AccuracyVsDimensionEpochsTrained=10.pdf} }}%
+    \caption{Overfitting in Word2Vec; regularization in Word2bits}%
+    \label{fig:overfitting}
+\end{figure}
+
+\subsection{Word2Bits Visualization}
+
+
 \section{Discussion and Future Work}
 
 \subsubsection*{Acknowledgments}

@@ -1,6 +1,13 @@
 import sys
+import matplotlib
 import matplotlib.pyplot as plt
 import re
+
+
+font = {'family' : 'normal',
+        'size'   : 17}
+matplotlib.rc('font', **font)
+matplotlib.rcParams['axes.color_cycle'] = ['r', 'b', 'g']
 
 raw_data_loss = """
 FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1071769.750000
@@ -241,8 +248,8 @@ def plot_accuracy_vs_dimension(points_loss, points_acc, n_epochs_ran, keepqs=Non
         points_loss = [(d[0][1], d[1]) for d in data_loss]
         points_loss = sorted(points_loss, key=lambda x: x[0])
         ys_loss = [d[1] for d in points_loss]
-        ax1.plot(xs, ys, label="bits=" + str(q) + " (acc)", marker="o")
-        ax2.plot(xs, ys_loss, label="bits=" + str(q) + " (loss)", linestyle=":", marker="o")
+        ax1.plot(xs, ys, label="bits=" + str(q) + " (acc)", marker="o", linewidth=5, markersize=10)
+        ax2.plot(xs, ys_loss, label="bits=" + str(q) + " (loss)", linestyle=":", marker="o", linewidth=5, markersize=10)
 
     # Merge legend names
     handles,labels = [],[]
@@ -253,12 +260,12 @@ def plot_accuracy_vs_dimension(points_loss, points_acc, n_epochs_ran, keepqs=Non
     plt.legend(handles,labels)
 
     ax1.grid()
-    ax1.set_title("Accuracy/Loss vs Dimension, 100MB of Wikipedia, %d epochs trained" % n_epochs_ran)
-    ax1.set_xlabel("Embedding Dimension")
-    ax2.set_ylabel("On the Fly Training Loss")
-    ax1.set_ylabel("Google Analogy Average Accuracy % (Sem + Syn)")
+    #ax1.set_title("Accuracy/Loss vs Dimension, 100MB of Wikipedia, %d epochs trained" % n_epochs_ran)
+    ax1.set_xlabel("Vector Dimension")
+    ax2.set_ylabel("Training Loss")
+    ax1.set_ylabel("Google Analogy Accuracy %")
     fig.tight_layout()
-    fig.savefig("Wiki8AccuracyVsDimensionEpochsTrained=%d.png" % n_epochs_ran)
+    fig.savefig("Wiki8AccuracyVsDimensionEpochsTrained=%d.pdf" % n_epochs_ran)
 
 def plot_accuracy_vs_epochs(points_loss, points_acc, dimension, keepqs=None):
 
@@ -285,8 +292,8 @@ def plot_accuracy_vs_epochs(points_loss, points_acc, dimension, keepqs=None):
         points_loss = [(d[0][0], d[1]) for d in data_loss]
         points_loss = sorted(points_loss, key=lambda x: x[0])
         ys_loss = [d[1] for d in points_loss]
-        ax1.plot(xs, ys, label="Bits=" + str(q) + " (acc)", marker="o")
-        ax2.plot(xs, ys_loss, label="Bits=" + str(q) + " (loss)", linestyle=":", marker="o")
+        ax1.plot(xs, ys, label="Bits=" + str(q) + " (acc)", marker="o", linewidth=5, markersize=10)
+        ax2.plot(xs, ys_loss, label="Bits=" + str(q) + " (loss)", linestyle=":", marker="o", linewidth=5, markersize=10)
 
     # Merge legend names
     handles,labels = [],[]
@@ -297,12 +304,12 @@ def plot_accuracy_vs_epochs(points_loss, points_acc, dimension, keepqs=None):
     plt.legend(handles,labels)
 
     ax1.grid()
-    ax1.set_title("Accuracy/Loss vs Epochs, 100MB of Wikipedia, Dimension %d" % dimension)
+    #ax1.set_title("Accuracy/Loss vs Epochs, 100MB of Wikipedia, Dimension %d" % dimension)
     ax1.set_xlabel("Epochs Trained")
-    ax1.set_ylabel("Google Analogy Average Accuracy % (Sem + Syn)")
-    ax2.set_ylabel("On the Fly Training Loss")
+    ax1.set_ylabel("Google Analogy Accuracy %")
+    ax2.set_ylabel("Training Loss")
     fig.tight_layout()
-    fig.savefig("Wiki8AccuracyVsEpochsTrainedDimension=%d.png" % dimension)
+    fig.savefig("Wiki8AccuracyVsEpochsTrainedDimension=%d.pdf" % dimension)
 
 
 data_losses = extract_data(raw_data_loss)
