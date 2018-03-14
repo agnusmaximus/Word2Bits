@@ -53,11 +53,11 @@ language processing. Each word vector is typically represented as a
 300-500 dimensional vector, with each parameter being 32 bits. As
 there are millions of words, word vectors may take up to 3-6 GB of
 memory/storage -- a massive amount relative to other portions of a
-deep learning model[1]. These requirements pose issues to
+deep learning model[25]. These requirements pose issues to
 memory/storage limited devices like mobile phones and GPUs.
 
 Furthermore, word vectors are often re-trained on application specific
-data for better performance in application specific domains[1]. This
+data for better performance in application specific domains[27]. This
 motivates directly learning high quality compact word representations
 rather than adding an extra layer of compression on top of pretrained
 word vectors which may be computational expensive and degrade
@@ -65,9 +65,9 @@ accuracy.
 
 Recent trends indicate that deep learning models can reach a high
 accuracy even while training in the presence of significant noise and
-perturbation[1]. It has furthermore been shown that high quality
+perturbation[5, 6, 9, 28, 32]. It has furthermore been shown that high quality
 quantized deep learning models for image classification can be learned
-at the expense of more training epochs[1]. Inspired by these trends we
+at the expense of more training epochs[9]. Inspired by these trends we
 ask: can we learn high quality word vectors such that each parameter
 is only one of two values, or one of four values (quantizing to 1 and
 2 bits respectively)?
@@ -97,9 +97,9 @@ In this report we show that
 \section{Related Work}
 Word vectors are continuous representations of words and are used by
 most deep learning NLP models. Word2Vec, introduced by Mikolov's
-groundbreaking papers[1], is an unsupervised neural network algorithm for
+groundbreaking papers[7, 8], is an unsupervised neural network algorithm for
 learning word vectors from textual data. Since then, other
-groundbreaking algorithms (Glove, FastText) [1] have been proposed to
+groundbreaking algorithms (Glove, FastText) [2, 11] have been proposed to
 learn word vectors using other properties of textual data. As of 2018
 the most widely used word vectors are Glove, Word2Vec and
 FastText. This work focuses on how to learn memory/storage efficient
@@ -109,36 +109,36 @@ extends Word2Vec to output high quality quantized word vectors.
 Learning compact word vectors is related to learning compressed neural
 networks. Finding compact representations of neural
 networks date back to the 90's and include techniques like network
-pruning[1], knowledge distillation[1], deep compression[1] and
-quantization[1]. More recently, algorithmic and hardware advances have
+pruning[24, 25], knowledge distillation[29], deep compression[25] and
+quantization[9]. More recently, algorithmic and hardware advances have
 allowed training deep models using low precision floating-point and
-arithmetic operations[1] -- this is also referred to as
+arithmetic operations[22, 26] -- this is also referred to as
 quantization. To distinguish between quantized training with low
 precision arithmetic/floats from quantized training with full
 precision arithmetic/floats but constrained values we term the first
 physical quantization and the latter virtual quantization.
 
 Our technical approach follows that of neural network quantization for
-image classification[1], which does virtual quantization by
+image classification[9], which does virtual quantization by
 introducing a sign function (a 1 bit quantization function) into the
 training loss function. The actual technique of backpropagating through a
 discrete function (the quantization function) has been thoroughly
-explored by Hinton[1] and Bengio[1].
+explored by Hinton[10] and Bengio[30].
 
 Application wise, various techniques exist to compress word
-embeddings[1]. These approaches involve taking pre-trained word
-vectors and compressing them using dimensionality reduction[1],
-pruning[1], or more complicated approaches like deep compositional
-coding[1]. Such techniques add an extra layer of computation to
+embeddings. These approaches involve taking pre-trained word
+vectors and compressing them using dimensionality reduction,
+pruning[25], or more complicated approaches like deep compositional
+coding[25]. Such techniques add an extra layer of computation to
 compress pre-trained embeddings and may degrade word vector
-performance[1].
+performance[25].
 
 To the best of our knowledge, current traditional methods of obtaining
 compact word vectors involve adding an extra layer of computation to
-compress pretrained word vectors[1] (as described previously). This
+compress pretrained word vectors[1, 23, 25] (as described previously). This
 may incur computational costs which may be expensive in context of
 retraining word vectors for application specific purposes and may
-degrade word vector performance[1]. Our proposed approach of directly
+degrade word vector performance[25]. Our proposed approach of directly
 learning quantized word vectors from textual data may amend these
 issues and is an alternative method of obtaining compact high quality
 word vectors. Note that these traditional compression methods may
@@ -148,7 +148,7 @@ still be applied on the learned quantized word vectors.
 \subsection{Background}
 Our approach utilizes the Word2Vec formulation of learning word vectors. There
 are two Word2Vec algorithms: Skip Gram Negative Sampling (SGNS) and
-Continuous Bag of Words (CBOW)[1] -- our virtual quantization
+Continuous Bag of Words (CBOW)[7] -- our virtual quantization
 technique utilizes CBOW with negative sampling. The CBOW negative
 sampling loss function minimizes
 
@@ -168,10 +168,11 @@ $$
 k = \mbox{ number of negative samples, a hyperparameter}
 $$
 
-Intuitively, minimizing this loss function optimizes vectors of
-words that occur in similar contexts to be ``closer'' to each other,
-and pushes vectors whose contexts are different ``away''. Specifically CBOW with negative sampling tries to predict the
-center word from context words.
+Intuitively, minimizing this loss function optimizes vectors of words
+that occur in similar contexts to be ``closer'' to each other, and
+pushes vectors whose contexts are different ``away''. Specifically
+CBOW with negative sampling tries to predict the center word from
+context words.
 
 Technically, to optimize this loss function, for each window of words:
 
@@ -240,7 +241,7 @@ $$
 \frac{\partial Q_{bitlevel}(x)}{\partial x} = I
 $$
 
-This is also known as Hinton's straight-through estimator[1].
+This is also known as Hinton's straight-through estimator[10].
 
 The final gradient updates reduce to Word2Vec updates. They are:
 $$
@@ -273,7 +274,7 @@ quantized.
 
 We train word vectors with varying levels of precision and dimension
 on the 2017 English Wikipedia dump (24G of text). We normalize the
-text similar to FastText[1], however we keep the text case
+text similar to FastText[2], however we keep the text case
 sensitive. We train all word vectors for 25 epochs. We use the
 following hyperparameters: window size = 10, negative sample size =
 12, min count = 5, subsampling = 1e-4, learning rate = .05 (which is
@@ -286,18 +287,18 @@ on them.
 
 \textbf{Test Datasets and Evaluation}
 
-Our evaluation procedure follows that of [1]. We use six datasets to
+Our evaluation procedure follows that of [4]. We use six datasets to
 evaluate word similarity and two datasets to evaluate word
 analogy. The word similarity test datasets are: WordSim353 Similarity
-[1], WordSim353 Relatedness [1], MEN [1], Mechanical Turk [1], Rare
-Words [1] and Simlex[1]. The word analogy test datasets are Google's
-analogy dataset [1] and MSR's analogy dataset[2]. We modify Google's
+[16], WordSim353 Relatedness [17], MEN [18], Mechanical Turk [19], Rare
+Words [20] and Simlex[21]. The word analogy test datasets are Google's
+analogy dataset [9] and MSR's analogy dataset[9]. We modify Google's
 analogy dataset by uppercasing the first character of proper nouns (as
 we are training case sensitive word vectors). To evalute word
 similarity, word vectors are ranked by cosine similarity; the reported
-score is correlation with human rankings[1]. To answer word analogy
+score is correlation with human rankings[4]. To answer word analogy
 questions we use two methods: 3CosAdd (Add) and 3CosMul (Mul) as
-detailed in [1]; the reported score is the percentage of questions for
+detailed in [4]; the reported score is the percentage of questions for
 which the argmax vector is the correct answer.
 
 \textbf{Results}
@@ -362,7 +363,7 @@ counterparts across all tasks.
 \textbf{Word Vector Training Methodology}
 
 We use the same word vectors as the intrinsic tasks. Word vectors were
-trained on 2017 English Wikipedia (24G of text) on normalized text[1]
+trained on 2017 English Wikipedia (24G of text) on normalized text[2]
 keeping case sensitivity. All word vectors were trained for 25 epochs
 and with the following hyperparameters: window size = 10, negative
 sample size = 12, min count = 5, subsampling = 1e-4, learning rate =
@@ -372,30 +373,30 @@ is 3.7 million after filtering words that appear less than min count =
 
 \textbf{SQuAD Model}
 
-Using our word vectors, we train Facebook's official DrQA[1] model for the Stanford Question Answering
-task (SQuAD). Implementation details and
-hyperparameters follow[1] with the following differences: word
-embeddings are fixed (instead of allowing the top 1000 to be fine
+Using our word vectors, we train Facebook's official DrQA[14] model
+for the Stanford Question Answering task (SQuAD)[13]. Implementation
+details and hyperparameters follow[14] with the following differences:
+word embeddings are fixed (instead of allowing the top 1000 to be fine
 tuned) and the model is trained for 50 epochs (instead of 40). Note
 that the DrQA model is trained entirely in full precision.
 
 \textbf{Results}
 
-Table 2 shows F1 scores attained by full precision vectors and
-quantized vectors on SQuAD. The data show that quantized vectors
-outperform full precision vectors by around 1 F1 point; the best
-performing word vector (400 dimensional 2-bit word vectors) uses 100
-bytes per word, which is 8x-16x less than full precision word
-vectors. Interestingly, there is a sharp drop in F1 score from
-32-bit 800 dimensional vectors (F1=75.31) to 32-bit 1000 dimensional
-vectors (F1=9.99). Upon inspection of the 32-bit 1000 dimensional word
-vectors, we found that parameter values had ``exploded'' to large
-absolute magnitudes ({\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}
-1000000). Intrinsic tasks were unaffected by this phenomena as vectors
-were normalized before processing them (unlike the default DrQA code
-which does not normalize the word vectors). We believe that
-normalizing the full precision 1000 dimensional vectors would yield
-better scores.
+Table 2 shows the best development F1 scores achieved across training
+epochs by full precision vectors and quantized vectors on SQuAD. The
+data show that quantized vectors outperform full precision vectors by
+around 1 F1 point; the best performing word vector (400 dimensional
+2-bit word vectors) uses 100 bytes per word, which is 8x-16x less than
+full precision word vectors. Interestingly, there is a sharp drop in
+F1 score from 32-bit 800 dimensional vectors (F1=75.31) to 32-bit 1000
+dimensional vectors (F1=9.99). Upon inspection of the 32-bit 1000
+dimensional word vectors, we found that parameter values had
+``exploded'' to large absolute magnitudes
+({\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}} 1000000). Intrinsic
+tasks were unaffected by this phenomena as vectors were normalized
+before processing them (unlike the default DrQA code which does not
+normalize the word vectors). We believe that normalizing the full
+precision 1000 dimensional vectors would yield better scores.
 
 
 \begin{table}[t]
@@ -439,7 +440,7 @@ better scores.
 To understand why quantized word vectors perform consistently better
 on word similarity and question answering we train word vectors on
 100MB of wikipedia (text8; case insensitive; Matt Mahoney
-processed)[1] with the following hyperparameters:
+processed)[31] with the following hyperparameters:
 
 \begin{enumerate}
 \item[$\bullet$] Window size = 10
@@ -470,56 +471,209 @@ quantized training may be a form of regularization.
 
 \begin{figure}%
     \centering
-    \subfloat[Training loss and accuracy vs epochs trained (vector dimension = 400)]{{\includegraphics[width=6cm]{images/Wiki8AccuracyVsEpochsTrainedDimension=400.pdf}}}%
+    \subfloat[Training loss and accuracy vs epochs trained (vector dimension = 400) on 100MB of Wikipedia. Trends show that Word2Vec is prone to overfitting with many epochs of training.]{{\includegraphics[width=6cm]{images/Wiki8AccuracyVsEpochsTrainedDimension=400.pdf}}}%
     \qquad
-    \subfloat[Training loss and accuracy vs dimension (epochs trained = 10)]{{\includegraphics[width=6cm]{images/Wiki8AccuracyVsDimensionEpochsTrained=10.pdf} }}%
-    \caption{Overfitting in Word2Vec; regularization in Word2bits}%
+    \subfloat[Training loss and accuracy vs dimension (epochs trained = 10) on 100MB of Wikipedia. Trends show that overfitting may occur with larger vector dimensions.]{{\includegraphics[width=6cm]{images/Wiki8AccuracyVsDimensionEpochsTrained=10.pdf} }}%
+    \caption{Overfitting in full precision Word2Vec training; regularization in quantized Word2vec training}%
     \label{fig:overfitting}
 \end{figure}
 
 \subsection{Word2Bits Visualization}
 
 
-\section{Discussion and Future Work}
+\section{Conclusion and Future Work}
+
+In this report we have shown that it is possible to train high quality
+quantized vectors that take 8-16x less storage/memory than full
+precision vectors. Interestingly, quantized word vectors perform
+better than full precision vectors on both word similarity and
+question answering, but worse on word analogy. The data suggest that
+performing well on word analogy tasks require a higher number of bits
+per word while doing well on word similarity tasks require
+fewer. Another interesting observation is that performance on the
+intrinsic tasks did not really predict performance on extrinsic tasks
+(SQuAD) -- this validates the findings of [3, 12]. We  have also shown
+that full precision Word2Vec training is prone to overfitting (across
+training epochs and across word vector dimension) on smaller datasets
+(100MB of Wikipedia); this suggests it is not always better to train
+for many epochs. We believe the same phenomena holds for larger
+datasets. A final interesting observation is that parameter values of
+Word2Vec vectors tend to ``explode'' with higher dimensions, an issue
+that virtually quantized training does not have. This suggests it may
+be helpful to introduce a regularization term to Word2Vec.
+
+Future work involves evaluating full precision vectors and quantized
+vectors on other extrinsic tasks, which will give a more complete
+picture of the relative performance of the two. We would also like to
+train quantized word vectors on much larger corpuses of data such as
+Common Crawl or Google News. Another task is to validate that
+overfitting occurs on larger datasets (full english Wikipedia) with
+respect to various tasks (other intrinsic tasks, extrinsic
+tasks). Finally, we believe it is possible to do virtually quantized
+training with Glove, though initial experiments suggest that
+several modifications to the loss function are needed to make it work.
 
 \subsubsection*{Acknowledgments}
 
+Huge thanks to Sen Wu, Christopher Aberger, Kevin Clark and Professors
+Richard Socher and Christopher R\'e for their advice and assistance on
+the project!
+
 \subsubsection*{References}
 
-\small{ [1] Alexander, J.A. \& Mozer, M.C. (1995) Template-based
-  algorithms for connectionist rule extraction. In G. Tesauro,
-  D. S. Touretzky and T.K. Leen (eds.), {\it Advances in Neural
-    Information Processing Systems 7}, pp. 609-616. Cambridge, MA: MIT
-  Press.
+\small{ [1] Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs
+  Douze, Herve Jegou, and Tomas Mikolov. 2016. Fast-text.zip:
+  Compressing text classification models. {\it arXiv preprint
+  arXiv:1612.03651.}}
 
-- COMPRESSING WORD EMBEDDINGS VIA DEEP COMPOSITIONAL CODE LEARNING
-- FASTTEXT.ZIP: COMPRESSING TEXT CLASSIFICATION MODELS
-- FASTTEXT (Bag of Tricks for Efficient Text Classification)
-- Intrinsic Evaluation of Word Vectors Fails to Predict Extrinsic Performance
-- Improving Distributional Similarity with Lessons Learned from Word Embeddings
-- Optimal brain damage
-- Second order derivatives for network pruning: Optimal brain surgeon
-- Learning both weights and connections for efficient neural networks
-- Distributed Representations of Words and Phrases and their Compositionality
-- Efficient Estimation of Word Representations in Vector Space
-- Binarized Neural Networks
-- Hinton, Geoffrey. Neural networks for machine learning. Coursera, video lectures, 2012.
-- GloVe: Global Vectors for Word Representation
-- Learned in Translation: Contextualized Word Vectors
-- HALP
-- Towards Lower Bounds on Number of Dimensions for Word Embeddings
-- Evaluation methods for unsupervised word embeddings
-- SQuAD
-- DrQA
-- WordSim353 Finkelstein
-- WordSim Similarity, WordSim Relatedness (Zesch et al., 2008; Agirre et al., 2009
-- Bruni et al.s (2012) MEN
-- Radinsky et al.s (2011) Mechanical Turk
-- Luong et al.s (2013) Rare Words dataset
-- Hill et al.s (2014) SimLex-999
-- Low precision arithmetic for deep learning.
-- Predicting parameters in deep learning
-- Compressing neural networks with the hashing trick
-- Compression of Neural Machine Translation Models via Pruning
-- Reading Wikipedia to Answer Open-Domain Questions
+\small{[2] Armand Joulin, Edouard Grave, Piotr Bojanowski, and
+  Tomas Mikolov. 2016. Bag of tricks for efficient text
+  classification. {\it arXiv preprint arXiv:1607.01759.}
+}
+
+\small{[3] Billy Chiu, Anna Korhonen, and Sampo Pyysalo.
+  2016. Intrinsic evaluation of word vectors fails
+  to predict extrinsic performance. {\it Proceedings of RepEval 2016.}
+}
+
+\small{[4] Omer Levy, Yoav Goldberg, and Ido Dagan. 2015. Improving
+  distributional similarity with lessons learned from word
+  embeddings. {\it TACL.}
+}
+
+\small{[5] Y. LeCun, J. S. Denker, S. Solla, R. E. Howard, and
+  L. D. Jackel. Optimal brain damage. In {\it Advances in Neural
+    Information Processing Systems}, pages 598-605, 1990.
+}
+
+\small{[6] Han, Song, Pool, Jeff, Tran, John, and Dally, William
+  J. Learning both weights and connections for efficient neural
+  networks. In {\it Advances in Neural Information Processing Systems,
+  2015}.
+}
+
+\small{[7] Tomas Mikolov, Ilya Sutskever, Kai Chen, Greg Corrado, and
+  Jeff Dean. 2013. Distributed representations of words and phrases
+  and their compositionality. {\it In Advances in Neural Information
+  Processing Systems} 26, pages 3111-3119.}
+
+\small{[8] Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey
+  Dean. Efficient estimation of word representations in vector
+  space. In {\it International Conference on Learning Representations:
+    Workshops Track}, 2013.  arxiv.org/abs/1301.3781.}
+
+\small{[9] Courbariaux, M., Hubara, I., Soudry, D., El-Yaniv, R., and
+  Bengio, Y. Binarized Neural Networks: Training Deep Neural Networks
+  with Weights and Activations Constrained to +1 or -1. {\it arXiv preprint
+  arXiv:1602.02830}, 2016.
+
+\small{[10] Hinton, Geoffrey. Neural networks for machine
+  learning. Coursera, video lectures, 2012.}
+
+\small{[11] Pennington, Jeffrey, Richard Socher, and Christopher D
+  Manning. 2014. Glove: Global vectors for word representation. {\it
+    Proceedings of the Empiricial Methods in Natural Language
+    Processing (EMNLP 2014)} 12.}
+
+\small{[12] Tobias Schnabel, Igor Labutov, David Mimno, and Thorsten
+  Joachims. 2015. Evaluation methods for unsupervised word embeddings.
+  In {\it Proc. of EMNLP.}}
+
+\small{[13] P. Rajpurkar, J. Zhang, K. Lopyrev, and P. Liang. Squad:
+  100,000+ questions for machine comprehension of text. In {\it Empirical
+  Methods in Natural Language Processing (EMNLP)}, 2016.}
+
+\small{[14] Chen, D.; Fisch, A.; Weston, J.; and Bordes, A. 2017.
+  Reading wikipedia to answer open-domain questions. {\it arXiv preprint
+  arXiv:1704.00051}}
+
+\small{[15] Lev Finkelstein, Evgeniy Gabrilovich, Yossi Matias, Ehud
+  Rivlin, Zach Solan, Gadi Wolfman, and Eytan Ruppin. 2002. Placing
+  search in context: The concept revisited. {\it ACM Transactions on
+    Information Systems}, 20(1):116-131.}
+
+\small{[16] Torsten Zesch, Christof Muller, and Iryna Gurevych.
+  2008. Using wiktionary for computing semantic relatedness. In {\it
+    Proceedings of the 23rd National Conference on Artificial
+    Intelligence - Volume 2}, AAAI'08, pages 861-866. AAAI Press.}
+
+\small{[17] Eneko Agirre, Enrique Alfonseca, Keith Hall, Jana
+  Kravalova, Marius Pasca, and Aitor Soroa. 2009.  A study on
+  similarity and relatedness using distributional and wordnet-based
+  approaches. In {\it Proceedings of Human Language Technologies: The
+    2009 Annual Conference of the North American Chapter of the
+    Association for Computational Linguistics}, pages 19-27, Boulder,
+  Colorado, June. Association for Computational Linguistics.}
+
+\small{[18] Elia Bruni, Gemma Boleda, Marco Baroni, and Nam Khanh
+  Tran. 2012. Distributional semantics in technicolor. In {\it
+    Proceedings of the 50th Annual Meeting of the Association for
+    Computational Linguistics (Volume 1: Long Papers)}, pages 136-145,
+  Jeju Island, Korea, July. Association for Computational
+  Linguistics.}
+
+\small{[19] Kira Radinsky, Eugene Agichtein, Evgeniy Gabrilovich, and
+  Shaul Markovitch. 2011. A word at a time: Computing word relatedness
+  using temporal semantic analysis. In {\it Proceedings of the 20th
+  international conference on World wide web, pages 337-346. ACM.}}
+
+\small{[20] Minh-Thang Luong, Richard Socher, and Christopher
+  D. Manning. 2013. Better word representations with recursive neural
+  networks for morphology.  In {\it Proceedings of the Seventeenth
+  Conference on Computational Natural Language Learning}, pages
+  104-113, Sofia, Bulgaria, August. Association for Computational
+  Linguistics.}
+
+\small{[21] Roi Reichart Felix Hill and Anna Korhonen. 2014.
+  Simlex-999: Evaluating semantic models with (genuine) similarity
+  estimation. {\it arXiv preprint arXiv:1408.3456.}}
+
+\small{[22] Courbariaux, M., Bengio, Y., David, J.P.: Training deep
+  neural networks with low precision multiplications. {\it arXiv preprint
+  arXiv:1412.7024 (2014)}}
+
+\small{[23] W. Chen, J. T. Wilson, S. Tyree, K. Q. Weinberger, and
+  Y. Chen, ``Compressing neural networks with the hashing trick,'' in
+  {\it International Conference on Machine Learning (ICML)}, 2015,
+  pp. 2285-2294.}
+
+\small{[24] Abigail See, Minh-Thang Luong, and Christopher
+  D. Manning. 2016. Compression of Neural Machine Translation via
+  Pruning. In {\it Proceedings of CoNLL.}}
+
+\small{[25] Raphael Shu, Hideki Nakayama. 2017. Compressing Word
+  Embeddings via Deep Compositional Code Learning. In {\it
+    International Conference on Learning Representations}, 2017.}
+
+\small{[26] Christopher De Sa, Megan Leszczynski, Jian Zhang, Alana
+  Marzoev, Christopher R. Aberger, Kunle Olukotun, Christopher
+  R\'e. 2018. High-Accuracy Low-Precision Training. {\it arXiv
+    preprint arXiv:1803.03383}}
+
+\small{[27] Bryan McCann, James Bradbury, Caiming Xiong, and Richard
+  Socher. Learned in translation: Contextualized word vectors. In {\it
+    NIPS}, 2017.}
+
+\small{[28] Neelakantan, Arvind, Vilnis, Luke, Le, Quoc V., Sutskever,
+  Ilya, Kaiser, Lukasz, Kurach, Karol, and Martens, James. Adding
+  gradient noise improves learning for very deep networks. {\it ICLR
+  Workshop}, 2016.}
+
+\small{[29] Hinton, G. Vinyals, O. and Dean, J. Distilling knowledge
+  in a neural network. In {\it Deep Learning and Representation
+    Learning Workshop, NIPS}, 2014.}
+
+\small{[30] Bengio, Yoshua. Estimating or propagating gradients
+  through stochastic neurons. {\it Technical Report arXiv:1305.2982,
+  Universite de Montreal}, 2013.}
+
+\small{[31] Matt Mahoney. About the test data, 2011. URL
+  http://mattmahoney.net/dc/textdata.}
+
+\small{[32] B. Hassibi, D. Stork, G. Wolff and T. Watanabe. Optimal
+  brain surgeon: Extensions and performance comparisons. In {\it Advances
+    in Neural Information Processing Systems 6}.  Morgan Kaufman, San
+  Mateo, CA: 263-270, 1994.
+}
+
 \end{document}
