@@ -20,7 +20,7 @@
   takes only `bitlevel` bits to represent; this drastically reduces
   the amount of storage that word vectors take.
 
-# Pretrained Quantized Word Vectors
+# Download Pretrained Quantized Word Vectors
   TODO
 
 # What do Quantized Word Vectors look like?
