@@ -49,7 +49,7 @@ int binary = 0, debug_mode = 2, window = 5, min_count = 5, num_threads = 12, min
 int *vocab_hash;
 long long vocab_max_size = 1000, vocab_size = 0, layer1_size = 100;
 long long train_words = 0, word_count_actual = 0, iter = 5, file_size = 0, classes = 0;
-bool save_every_epoch = 1;
+bool save_every_epoch = 0;
 real alpha = 0.05, starting_alpha, sample = 1e-3;
 real *thread_losses;
 real *u, *v, *expTable;
@@ -63,38 +63,27 @@ int *table;
 //              Word2Bits                //
 ///////////////////////////////////////////
 
-real min_val = 1000000000, max_val = -1000000000;
-
-typedef union {
-  float f;
-  struct {
-    unsigned int mantisa : 23;
-    unsigned int exponent : 8;
-    unsigned int sign : 1;
-  } parts;
-} float_cast;
-
 real quantize(real num, int bitlevel) {
 
   if (bitlevel == 0) {
     // Special bitlevel 0 => full precision
     return num;
   }
-  
+
   // Extract sign
   real retval = 0;
   real sign = num < 0 ? -1 : 1;
   num *= sign;
-  
+
   // Boundaries: 0
   if (bitlevel == 1) {
     return sign / 3;
   }
-  
+
   // Determine boundary and discrete activation value (2 bits)
   // Boundaries: 0, .5
   if (bitlevel == 2) {
-    if (num >= 0 && num <= .5) retval = .25; 
+    if (num >= 0 && num <= .5) retval = .25;
     else retval = .75;
   }
 
@@ -135,7 +124,7 @@ void InitUnigramTable() {
 void ReadWord(char *word, FILE *fin, char *eof) {
   int a = 0, ch;
   while (1) {
-    ch = fgetc_unlocked(fin);
+    ch = fgetc(fin);
     if (ch == EOF) {
       *eof = 1;
       break;
@@ -326,7 +315,8 @@ void ReadVocab() {
     ReadWord(word, fin, &eof);
     if (eof) break;
     a = AddWordToVocab(word);
-    if (fscanf(fin, "%lld%c", &vocab[a].cn, &c));
+    if (fscanf(fin, "%lld%c", &vocab[a].cn, &c))
+	;
     i++;
   }
   SortVocab();
@@ -357,7 +347,7 @@ void InitNet() {
       v[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) ;
     }
   }
-  for (a = 0; a < vocab_size; a++) 
+  for (a = 0; a < vocab_size; a++)
     for (b = 0; b < layer1_size; b++) {
       next_random = next_random * (unsigned long long)25214903917 + 11;
       u[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) ;
@@ -376,7 +366,7 @@ void *TrainModelThread(void *id) {
   clock_t now;
   real *context_avg = (real *)calloc(layer1_size, sizeof(real));
   real *context_avge = (real *)calloc(layer1_size, sizeof(real));
-  real loss = 0, total_loss = 0;  
+  real loss = 0, total_loss = 0;
   FILE *fi = fopen(train_file, "rb");
   fseek(fi, file_size / (long long)num_threads * (long long)id, SEEK_SET);
   while (1) {
@@ -519,8 +509,8 @@ void TrainModel() {
     printf("Epoch Loss: %f\n", total_loss_epoch);
     char output_file_cur_iter[MAX_STRING] = {0};
     sprintf(output_file_cur_iter, "%s_epoch%d", output_file, iteration);
-    fo = fopen(output_file_cur_iter, "wb");
     if (classes == 0 && save_every_epoch) {
+      fo = fopen(output_file_cur_iter, "wb");
       // Save the word vectors
       fprintf(fo, "%lld %lld\n", vocab_size, layer1_size);
       for (a = 0; a < vocab_size; a++) {
@@ -533,8 +523,8 @@ void TrainModel() {
 	}
 	fprintf(fo, "\n");
       }
+      fclose(fo);
     }
-    fclose(fo);
   }
 
   // Write an extra file
@@ -553,7 +543,7 @@ void TrainModel() {
       fprintf(fo, "\n");
       }
   }
-  fclose(fo);  
+  fclose(fo);
 }
 
 int ArgPos(char *str, int argc, char **argv) {
