@@ -12,9 +12,9 @@
   For example, the 1-bit quantized vector for "king" looks something
   like
 
-  ```0.33333334 0.33333334 0.33333334 -0.33333334 -0.33333334
-  -0.33333334 0.33333334 0.33333334 -0.33333334 0.33333334 0.33333334
-  ...```
+  ```
+  0.33333334 0.33333334 0.33333334 -0.33333334 -0.33333334 -0.33333334 0.33333334 0.33333334 -0.33333334 0.33333334 0.33333334 ...
+  ```
 
   As each parameter is one of `2^bitlevel` values, each parameter
   takes only `bitlevel` bits to represent; this drastically reduces
