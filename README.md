@@ -4,7 +4,7 @@
   quantized word vectors that take 8x-16x less storage/memory than
   regular word vectors.
 
-# What are Quantized Word Vectors?
+## What are Quantized Word Vectors?
 
   Quantized word vectors are word vectors where each parameter
   is one of `2^bitlevel` values.
@@ -20,13 +20,13 @@
   takes only `bitlevel` bits to represent; this drastically reduces
   the amount of storage that word vectors take.
 
-# Download Pretrained Quantized Word Vectors
+## Download Pretrained Quantized Word Vectors
   TODO
 
-# What do Quantized Word Vectors look like?
+## What do Quantized Word Vectors look like?
 
-# Using the Code
+## Using the Code
 
-## Quickstart
+### Quickstart
 
-## Tutorial - text8
+### Tutorial - text8
