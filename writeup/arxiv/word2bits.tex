@@ -1,4 +1,4 @@
-\pdfoutput=1
+\Pdfoutput=1
 \documentclass{article} % For LaTeX2e
 \usepackage{nips13submit_e,times}
 \usepackage{graphicx}
@@ -472,9 +472,9 @@ quantized training may be a form of regularization.
 
 \begin{figure}%
     \centering
-    \subfloat[Training loss and accuracy vs epochs trained (vector dimension = 400) on 100MB of Wikipedia. Trends show that Word2Vec is prone to overfitting with many epochs of training.]{{\includegraphics[width=6cm]{images/Wiki8AccuracyVsEpochsTrainedDimension=400.pdf}}}%
+    \subfloat[Training loss and accuracy vs epochs trained (vector dimension = 400) on 100MB of Wikipedia. Trends show that Word2Vec is prone to overfitting with many epochs of training.]{{\includegraphics[width=6cm]{Wiki8AccuracyVsEpochsTrainedDimension=400.pdf}}}%
     \qquad
-    \subfloat[Training loss and accuracy vs dimension (epochs trained = 10) on 100MB of Wikipedia. Trends show that overfitting may occur with larger vector dimensions.]{{\includegraphics[width=6cm]{images/Wiki8AccuracyVsDimensionEpochsTrained=10.pdf} }}%
+    \subfloat[Training loss and accuracy vs dimension (epochs trained = 10) on 100MB of Wikipedia. Trends show that overfitting may occur with larger vector dimensions.]{{\includegraphics[width=6cm]{Wiki8AccuracyVsDimensionEpochsTrained=10.pdf} }}%
     \caption{Overfitting in full precision Word2Vec training; regularization in quantized Word2vec training}%
     \label{fig:overfitting}
 \end{figure}
@@ -491,17 +491,17 @@ related to each other.
 
 \begin{figure}%
     \centering
-    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_man.pdf}}}%
+    \subfloat[]{{\includegraphics[width=6cm]{visualize_nearest_man.pdf}}}%
     \qquad
-    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_science.pdf}}}%
+    \subfloat[]{{\includegraphics[width=6cm]{visualize_nearest_science.pdf}}}%
     \\
-    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_mushroom.pdf}}}%
+    \subfloat[]{{\includegraphics[width=6cm]{visualize_nearest_mushroom.pdf}}}%
     \qquad
-    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_language.pdf}}}%
+    \subfloat[]{{\includegraphics[width=6cm]{visualize_nearest_language.pdf}}}%
     \\
-    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_sport.pdf}}}%
+    \subfloat[]{{\includegraphics[width=6cm]{visualize_nearest_sport.pdf}}}%
     \qquad
-    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_excited.pdf}}}%
+    \subfloat[]{{\includegraphics[width=6cm]{visualize_nearest_excited.pdf}}}%
     \caption{Visualizing 1-bit 800 dimensional word vectors}
     \label{fig:viz}
 \end{figure}
