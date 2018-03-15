@@ -27,8 +27,9 @@
 
 Here are examples of 1 bit word vectors and their nearest and furthest neighbors:
 
-![Word Vector for "man"](https://github.com/agnusmaximus/Word2Bits/images/visualize_nearest_man.png)
-![Word Vector for "science"](https://github.com/agnusmaximus/Word2Bits/images/visualize_nearest_science.png)
+![Word Vector for "man"](images/visualize_nearest_man.png?raw=true)
+
+![Word Vector for "science"](images/visualize_nearest_science.png?raw=true)
 
 
 ## Using the Code
