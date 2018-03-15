@@ -20,10 +20,16 @@
   takes only `bitlevel` bits to represent; this drastically reduces
   the amount of storage that word vectors take.
 
-## Download Pretrained Quantized Word Vectors
+## Download Pretrained Word Vectors
   TODO
 
-## What do Quantized Word Vectors look like?
+## Visualizing Quantized Word Vectors?
+
+Here are examples of 1 bit word vectors and their nearest and furthest neighbors:
+
+![Word Vector for "man"](https://github.com/agnusmaximus/Word2Bits/images/visualize_nearest_man.png)
+![Word Vector for "science"](https://github.com/agnusmaximus/Word2Bits/images/visualize_nearest_science.png)
+
 
 ## Using the Code
 
