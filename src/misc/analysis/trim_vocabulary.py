@@ -46,7 +46,7 @@ for word in sorted_words:
 
 print("Writing out final words")
 with open(output_path, "w") as f:
-    print("%d %d" % (words_added, len(word_vecs.values()[0])))
+    print("%d %d" % (words_added, len(word_vecs.values()[0])), file=f)
     n_written = 0
     for word in words_to_use:
         print("%d written to disk of %d" % (n_written, words_added))
