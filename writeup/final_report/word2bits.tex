@@ -37,9 +37,9 @@ Maximilian Lam\\
 Word vectors require significant amounts of memory and storage, posing
 issues to resource limited devices like mobile phones and GPUs. We
 show that high quality quantized word vectors using 1-2 bits per
-parameter can be learned by training Word2Vec with a quantization
-function. We furthermore show that training with the quantization
-function acts as a regularizer. We train word vectors on full english
+parameter can be learned by introducing a quantization function into
+Word2Vec. We furthermore show that training with the quantization
+function acts as a regularizer. We train word vectors on English
 Wikipedia (2017) and evaluate them on standard word similarity and
 analogy tasks and on question answering (SQuAD). Our quantized word
 vectors not only take 8-16x less space than full precision (32 bit)
@@ -479,7 +479,31 @@ quantized training may be a form of regularization.
 \end{figure}
 
 \subsection{Word2Bits Visualization}
+Figure 2 shows a visualization of 800 dimensional 1 bit word vectors
+trained on English Wikipedia (2017). The top 100 closest and furthest
+word vectors to the target word vector are plotted. Distance is
+measured by dot product; every 5 word vectors are labelled. A
+turquoise line separates the 100 closest vectors to the target word
+from the 100 furthest vectors (labelled ``...'').  We see that there
+are qualitative similarities between word vectors whose words are
+related to each other.
 
+\begin{figure}%
+    \centering
+    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_man.pdf}}}%
+    \qquad
+    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_science.pdf}}}%
+    \\
+    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_mushroom.pdf}}}%
+    \qquad
+    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_language.pdf}}}%
+    \\
+    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_sport.pdf}}}%
+    \qquad
+    \subfloat[]{{\includegraphics[width=6cm]{images/visualize_nearest_excited.pdf}}}%
+    \caption{Visualizing 1-bit 800 dimensional word vectors}
+    \label{fig:viz}
+\end{figure}
 
 \section{Conclusion and Future Work}
 
@@ -507,7 +531,7 @@ vectors on other extrinsic tasks, which will give a more complete
 picture of the relative performance of the two. We would also like to
 train quantized word vectors on much larger corpuses of data such as
 Common Crawl or Google News. Another task is to validate that
-overfitting occurs on larger datasets (full english Wikipedia) with
+overfitting occurs on larger datasets (full English Wikipedia) with
 respect to various tasks (other intrinsic tasks, extrinsic
 tasks). Finally, we believe it is possible to do virtually quantized
 training with Glove, though initial experiments suggest that
