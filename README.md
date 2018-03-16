@@ -79,7 +79,40 @@ A walkthrough of running Word2Bits on text8 (100 MB of wikipedia).
    ./word2bits -bitlevel 1 -size 200 -window 8 -negative 24 -threads 4 -iter 5 -min-count 5 -train text8  -output 1b200d_vectors -binary 1
    ```
 
+   (This will take several minutes. Run with more threads if you have more cores!)
+
 4. Evaluate vectors on Google Analogy Task
    ```
    ./compute_accuracy ./1b200d_vectors < data/google_analogies_test_set/questions-words.txt
+   ```
+
+   You should see output like:
+   ```
+   Starting eval...
+   capital-common-countries:
+   ACCURACY TOP1: 19.76 %  (100 / 506)
+   Total accuracy: 19.76 %   Semantic accuracy: 19.76 %   Syntactic accuracy: -nan %
+   capital-world:
+   ACCURACY TOP1: 8.81 %  (239 / 2713)
+   Total accuracy: 10.53 %   Semantic accuracy: 10.53 %   Syntactic accuracy: -nan %
+   ...
+   gram8-plural:
+   ACCURACY TOP1: 19.92 %  (251 / 1260)
+   Total accuracy: 11.48 %   Semantic accuracy: 13.27 %   Syntactic accuracy: 10.25 %
+   gram9-plural-verbs:
+   ACCURACY TOP1: 6.09 %  (53 / 870)
+   Total accuracy: 11.20 %   Semantic accuracy: 13.27 %   Syntactic accuracy: 9.88 %
+   Questions seen / total: 16284 19544   83.32 %
+   ```
+
+   Inspecting the vector file in hex should show:
+   ```
+   $ od --format=x1 --read-bytes=160 1b200d_vectors
+   0000000 36 30 32 33 38 20 32 30 30 0a 3c 2f 73 3e 20 ab
+   0000020 aa aa 3e ab aa aa 3e ab aa aa be ab aa aa be ab
+   0000040 aa aa 3e ab aa aa 3e ab aa aa 3e ab aa aa be ab
+   ...
+   0000160 aa aa be ab aa aa 3e ab aa aa be ab aa aa 3e ab
+   0000200 aa aa be ab aa aa 3e ab aa aa 3e ab aa aa 3e ab
+   0000220 aa aa be ab aa aa 3e ab aa aa be ab aa aa 3e ab
    ```
