@@ -2,7 +2,7 @@
 
   Word2Bits extends the Word2Vec algorithm to output high quality
   quantized word vectors that take 8x-16x less storage/memory than
-  regular word vectors.
+  regular word vectors. Read the details at https://arxiv.org/abs/1803.05651.
 
 ## What are Quantized Word Vectors?
 
