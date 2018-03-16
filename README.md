@@ -58,4 +58,28 @@ Description of the most common flags
 -binary                      0 to write in Glove format; 1 to write in binary format.
 ```
 
-### Tutorial - text8
+### Example: text8
+A walkthrough of running Word2Bits on text8 (100 MB of wikipedia).
+
+1. Download and preprocess text8 (make sure you're in the Word2Bits base directory).
+   ```
+   bash data/download_text8.sh
+   ```
+
+2. Compile Word2Bits and compute accuracy
+   ```
+   make word2bits
+   ```
+   ```
+   make compute_accuracy
+   ```
+
+3. Train 1 bit 200 dimensional word vectors for 5 epochs using 4 threads (save in binary so that compute_accuracy can work with it)
+   ```
+   ./word2bits -bitlevel 1 -size 200 -window 8 -negative 24 -threads 4 -iter 5 -min-count 5 -train text8  -output 1b200d_vectors -binary 1
+   ```
+
+4. Evaluate vectors on Google Analogy Task
+   ```
+   ./compute_accuracy ./1b200d_vectors < data/google_analogies_test_set/questions-words.txt
+   ```
