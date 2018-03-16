@@ -105,7 +105,7 @@ A walkthrough of running Word2Bits on text8 (100 MB of wikipedia).
    Questions seen / total: 16284 19544   83.32 %
    ```
 
-   Inspecting the vector file in hex should show:
+   Inspecting the vector file in hex should show something like:
    ```
    $ od --format=x1 --read-bytes=160 1b200d_vectors
    0000000 36 30 32 33 38 20 32 30 30 0a 3c 2f 73 3e 20 ab
