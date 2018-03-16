@@ -25,8 +25,6 @@
 
 ## Visualizing Quantized Word Vectors
 
-Here are examples of 800 dimensional 1 bit word vectors and their nearest and furthest neighbors:
-
 <img src="images/visualize_nearest_man.png?raw=true" width="400" height="300"/> <img src="images/visualize_nearest_science.png?raw=true" width="400" height="300"/>
 
 (Note: every 5 word vectors are labelled; turquoise line boundary between nearest and furthest word vectors from target.)
