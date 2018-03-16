@@ -46,16 +46,16 @@ Run with
 ```
 Description of the most common flags
 ```
-- train                       Input corpus text file
-- quantization_level          Number of bits for each parameter. 0 is full precision (or 32 bits).
-- size                        Word vector dimension
-- window                      Window size
-- negative                    Negative sample size
-- threads                     Number of threads to use to train
-- iter                        Number of epochs to train
-- min-count                   Minimum count value. Words appearing less than value are removed from corpus.
-- output                      Path to write output word vectors
-- binary                      0 to write in Glove format; 1 to write in binary format.
+-train                       Input corpus text file
+-quantization_level          Number of bits for each parameter. 0 is full precision (or 32 bits).
+-size                        Word vector dimension
+-window                      Window size
+-negative                    Negative sample size
+-threads                     Number of threads to use to train
+-iter                        Number of epochs to train
+-min-count                   Minimum count value. Words appearing less than value are removed from corpus.
+-output                      Path to write output word vectors
+-binary                      0 to write in Glove format; 1 to write in binary format.
 ```
 
 ### Tutorial - text8
