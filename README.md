@@ -44,7 +44,7 @@ Run with
 ```
 ./word2bits -train input -bitlevel 1 -size 200 -window 10 -negative 12 -threads 2 -iter 5 -min-count 5  -output 1bit_800d_vectors -binary 0
 ```
-Description of the most common flags
+Description of the most common flags:
 ```
 -train                       Input corpus text file
 -quantization_level          Number of bits for each parameter. 0 is full precision (or 32 bits).
@@ -59,7 +59,6 @@ Description of the most common flags
 ```
 
 ### Example: Word2Bits on text8
-A walkthrough of running Word2Bits on text8 (100 MB of wikipedia).
 
 1. Download and preprocess text8 (make sure you're in the Word2Bits base directory).
    ```
