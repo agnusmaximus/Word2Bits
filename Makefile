@@ -1,5 +1,5 @@
 CC_MIKOLOV=g++
-CFLAGS=-O3 -march=native -lm -lpthread -Wno-unused-result
+CFLAGS=-O3 -march=native -lm -pthread -Wno-unused-result
 
 word2bits:
 	$(CC_MIKOLOV) $(CFLAGS) ./src/word2bits.cpp -o word2bits
