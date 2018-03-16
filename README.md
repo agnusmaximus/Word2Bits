@@ -42,20 +42,20 @@ make word2bits
 
 Run with
 ```
-./word2bits -bitlevel 1 -size 200 -window 10 -negative 12 -threads 2 -iter 5 -min-count 5 -train input  -output 1bit_800d_vectors -binary 0
+./word2bits -train input -bitlevel 1 -size 200 -window 10 -negative 12 -threads 2 -iter 5 -min-count 5  -output 1bit_800d_vectors -binary 0
 ```
 Description of the most common flags
 ```
+- train                       Input corpus text file
 - quantization_level          Number of bits for each parameter. 0 is full precision (or 32 bits).
 - size                        Word vector dimension
 - window                      Window size
 - negative                    Negative sample size
 - threads                     Number of threads to use to train
 - iter                        Number of epochs to train
-- min-count                   Minimum count value. Words that appear less than min-count times in the corpus will be removed from the vocabulary.
-- train                       Input corpus text file
+- min-count                   Minimum count value. Words appearing less than value are removed from corpus.
 - output                      Path to write output word vectors
-- binary                      Whether to write output in binary or in text (Glove) format. 1 means write in binary, 0 means write in Glove format.
+- binary                      0 to write in Glove format; 1 to write in binary format.
 ```
 
 ### Tutorial - text8
