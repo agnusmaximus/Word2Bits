@@ -27,8 +27,8 @@
 
 Here are examples of 1 bit word vectors and their nearest and furthest neighbors:
 
-<img src="images/visualize_nearest_man.png?raw=true" width="400" height="300"/>
-<img src="images/visualize_nearest_science.png?raw=true" width="400" height="300"/>
+<img src="images/visualize_nearest_man.png?raw=true" width="300" height="225"/>
+<img src="images/visualize_nearest_science.png?raw=true" width="300" height="225"/>
 
 ## Using the Code
 
