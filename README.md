@@ -58,7 +58,7 @@ Description of the most common flags
 -binary                      0 to write in Glove format; 1 to write in binary format.
 ```
 
-### Example: text8
+### Example: Word2Bits on text8
 A walkthrough of running Word2Bits on text8 (100 MB of wikipedia).
 
 1. Download and preprocess text8 (make sure you're in the Word2Bits base directory).
