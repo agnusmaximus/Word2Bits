@@ -16,7 +16,7 @@
   0.33333334 0.33333334 0.33333334 -0.33333334 -0.33333334 -0.33333334 0.33333334 0.33333334 -0.33333334 0.33333334 0.33333334 ...
   ```
 
-  Since parameters are limited to 1 of `2^bitlevel` values, each one
+  Since parameters are limited to one of `2^bitlevel` values, each parameter
   takes only `bitlevel` bits to represent; this drastically reduces
   the amount of storage that word vectors take.
 
