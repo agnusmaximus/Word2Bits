@@ -23,7 +23,7 @@
 ## Download Pretrained Word Vectors
   TODO
 
-## Visualizing Quantized Word Vectors?
+## Visualizing Quantized Word Vectors
 
 Here are examples of 1 bit word vectors and their nearest and furthest neighbors:
 
