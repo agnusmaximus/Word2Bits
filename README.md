@@ -42,7 +42,16 @@ make word2bits
 
 Run with
 ```
-./word2bits -bitlevel quantization_level -size word_vector_dimension -window window_size -negative negative_size -threads n_threads -iter n_epochs -min-count mincount -train corpus_input  -output vectors_output_name  -binary 0
+./word2bits -bitlevel quantization_level
+	    -size word_vector_dimension
+	    -window window_size
+	    -negative negative_size
+            -threads n_threads
+            -iter n_epochs
+            -min-count mincount
+            -train corpus_input
+            -output vectors_output_name
+            -binary 0
 ```
 
 Description of the most common flags
