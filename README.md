@@ -42,28 +42,20 @@ make word2bits
 
 Run with
 ```
-./word2bits -bitlevel quantization_level
-	    -size word_vector_dimension
-	    -window window_size
-	    -negative negative_size
-            -threads n_threads
-            -iter n_epochs
-            -min-count mincount
-            -train corpus_input
-            -output vectors_output_name
-            -binary 0
+./word2bits -bitlevel 1 -size 200 -window 10 -negative 12 -threads 2 -iter 5 -min-count 5 -train inupt  -output 1bit_800d_vectors -binary 0
 ```
-
 Description of the most common flags
-* `-quantization_level` - Number of bits for each parameter. 0 is full precision (or 32 bits).
-* `-size` - word vector dimension
-* `-window` - window size
-* `-negative` - negative sample size
-* `-threads` - number of threads to use to train
-* `-iter` - number of epochs to train
-* `-min-count` - min count. Words that appear less than min-count times in the corpus will be removed from the vocabulary.
-* `-train` - input corpus text file
-* `-output` - path to write output word vectors
-* `-binary` - whether to write output in binary or in text (Glove) format. 1 means write in binary, 0 means write in Glove format.
+```
+- quantization_level - Number of bits for each parameter. 0 is full precision (or 32 bits).
+- size - word vector dimension
+- window - window size
+- negative - negative sample size
+- threads - number of threads to use to train
+- iter - number of epochs to train
+- min-count - min count. Words that appear less than min-count times in the corpus will be removed from the vocabulary.
+- train - input corpus text file
+- output - path to write output word vectors
+- binary - whether to write output in binary or in text (Glove) format. 1 means write in binary, 0 means write in Glove format.
+```
 
 ### Tutorial - text8
