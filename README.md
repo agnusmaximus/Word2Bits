@@ -22,7 +22,7 @@
 
 ## Download Pretrained Word Vectors
 
-- All word vectors are in Glove/Fasttext format (see [here](https://fasttext.cc/docs/en/english-vectors.html)). Files are compressed using gzip.
+- All word vectors are in Glove/Fasttext format (format details [here](https://fasttext.cc/docs/en/english-vectors.html)). Files are compressed using gzip.
 
 | # Bits per parameter        | Dimension     | Trained on             | Vocabulary size  | File Size (Compressed) | Download Link |
 |:---------------------------:|:-------------:|:----------------------:|:----------------:|:----------------------:|:-------------:|
