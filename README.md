@@ -22,23 +22,23 @@
 
 ## Download Pretrained Word Vectors
 
-* All word vectors are in Glove/Fasttext format
+- All word vectors are in Glove/Fasttext format (see [here](https://fasttext.cc/docs/en/english-vectors.html)). Files are compressed using gzip.
 
 | # Bits per parameter        | Dimension     | Trained on             | Vocabulary size  | File Size (Compressed) | Download Link |
 |:---------------------------:|:-------------:|:----------------------:|:----------------:|:----------------------:|:-------------:|
-| 1                           | 800           | English Wikipedia 2017 | Top 400k         | 86M                    |               |
-| 1                           | 1000          | English Wikipedia 2017 | Top 400k         | 107M                   |               |
-| 1                           | 1200          | English Wikipedia 2017 | Top 400k         | 127M                   |               |
-| 2                           | 400           | English Wikipedia 2017 | Top 400k         | 68M                    |               |
-| 2                           | 800           | English Wikipedia 2017 | Top 400k         | 134M                   |               |
-| 2                           | 1000          | English Wikipedia 2017 | Top 400k         | 168M                   |               |
-| 32                          | 200           | English Wikipedia 2017 | Top 400k         | 365M                   |               |
-| 32                          | 400           | English Wikipedia 2017 | Top 400k         | 724M                   |               |
-| 32                          | 800           | English Wikipedia 2017 | Top 400k         | 1.5G                   |               |
-| 32                          | 1000          | English Wikipedia 2017 | Top 400k         | 1.8G                   |               |
-| 1                           | 800           | English Wikipedia 2017 | 3.7M (Full)      | 813M                   |               |
-| 2                           | 400           | English Wikipedia 2017 | 3.7M (Full)      | 671M                   |               |
-| 32                          | 400           | English Wikipedia 2017 | 3.7M (Full)      | 6.8G                   |               |
+| 1                           | 800           | English Wikipedia 2017 | Top 400k         | 86M                    | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/400K/w2b_bitlevel1_size800_vocab400K.tar.gz) |
+| 1                           | 1000          | English Wikipedia 2017 | Top 400k         | 106M                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/400K/w2b_bitlevel1_size1000_vocab400K.tar.gz)              |
+| 1                           | 1200          | English Wikipedia 2017 | Top 400k         | 126M                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/400K/w2b_bitlevel1_size1200_vocab400K.tar.gz)              |
+| 2                           | 400           | English Wikipedia 2017 | Top 400k         | 67M                    | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/400K/w2b_bitlevel2_size400_vocab400K.tar.gz)              |
+| 2                           | 800           | English Wikipedia 2017 | Top 400k         | 134M                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/400K/w2b_bitlevel2_size800_vocab400K.tar.gz)              |
+| 2                           | 1000          | English Wikipedia 2017 | Top 400k         | 168M                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/400K/w2b_bitlevel2_size1000_vocab400K.tar.gz)              |
+| 32                          | 200           | English Wikipedia 2017 | Top 400k         | 364M                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/400K/w2b_bitlevel0_size200_vocab400K.tar.gz)              |
+| 32                          | 400           | English Wikipedia 2017 | Top 400k         | 724M                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/400K/w2b_bitlevel0_size400_vocab400K.tar.gz)              |
+| 32                          | 800           | English Wikipedia 2017 | Top 400k         | 1.4G                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/400K/w2b_bitlevel0_size800_vocab400K.tar.gz)              |
+| 32                          | 1000          | English Wikipedia 2017 | Top 400k         | 1.8G                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/400K/w2b_bitlevel0_size1000_vocab400K.tar.gz)              |
+| 1                           | 800           | English Wikipedia 2017 | 3.7M (Full)      | 812M                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/3.7M/w2b_bitlevel1_size800_vocab3.7M.tar.gz)              |
+| 2                           | 400           | English Wikipedia 2017 | 3.7M (Full)      | 671M                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/3.7M/w2b_bitlevel2_size400_vocab3.7M.tar.gz)              |
+| 32                          | 400           | English Wikipedia 2017 | 3.7M (Full)      | 6.7G                   | [](http://web.stanford.edu/~maxlam/word_vectors/compressed/3.7M/w2b_bitlevel0_size400_vocab3.7M.tar.gz)              |
 
 ## Visualizing Quantized Word Vectors
 
