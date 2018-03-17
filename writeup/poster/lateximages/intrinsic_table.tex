@@ -1,0 +1,52 @@
+\documentclass{standalone}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{multirow}
+\usepackage[noend]{algpseudocode}
+\usepackage{multirow,multicol, makecell, booktabs}
+\usepackage{url}
+\begin{document}
+\resizebox{\textwidth}{!}{\begin{tabular}{ |c|cc|cccccc|cc| }
+\hline
+\makecell{Word Vector Type} &
+\makecell{Bits per \\ parameter} &
+\makecell{Dimension} &
+\makecell{WordSim \\ Similarity} &
+\makecell{WordSim \\ Relatedness} &
+\makecell{MEN} &
+\makecell{M. Turk} &
+\makecell{Rare \\ Words} &
+\makecell{SimLex} &
+\makecell{Google \\ Add / Mul} &
+\makecell{MSR \\ Add / Mul} \\
+\hline
+
+\multirow{4}{6em}{Full Precision}
+& 32 & 200 & .740 & .567 & .716 & .635 & .403 & .317 & .706/.702 & .447/.447\\
+& 32 & 400 & .735 & .533 & .720 & .623 & .408 & .335 & \textbf{.722}/.734 & \textbf{.473}/.486\\
+& 32 & 800 & .726 & .500 & .713 & .615 & .395 & .337 & .719/.735 & .471/\textbf{.489}\\
+& 32 & 1000 & .741 & .529 & .745 & .617 & .400 & .358 & .664/.675 & .423/.434\\
+\hline
+\multirow{4}{6em}{\makecell{Thresholded}}
+& T1 & 200 & .692 & .480 & .668 & .575 & .347 & .288 & .371/.369 & .186/.182\\
+& T1 & 400 & .677 & .446 & .686 & .581 & .369 & .321 & .533/.540 & .286/.292\\
+& T1 & 800 & .728 & .494 & .692 & .576 & .383 & .338 & .599/.609 & .333/.346\\
+& T1 & 1000 & .689 & .504 & .694 & .551 & .358 & .342 & .521/.520 & .303/.305\\
+\hline
+\multirow{6}{6em}{\makecell{Quantized}}
+& 1 & 800 & .772 & .653 & .746 & .612 & .417 & .355 & .619/.660 & .395/.390\\
+& 1 & 1000 & .768 & \textbf{.677} & .756 & .638 & \textbf{.425} & .372 & .650/.660 & .371/.408\\
+& 1 & 1200 & \textbf{.781} & .628 & .765 & \textbf{.643} & .415 & .379 & .659/.692 & .391/.429\\
+& 2 & 400 & .752 & .604 & .741 & .616 & .417 & .373 & .666/.690 & .396/.418\\
+& 2 & 800 & .776 & .634 & \textbf{.767} & .642 & .390 & \textbf{.403} & .710/.739 & .418/.460\\
+& 2 & 1000 & .752 & .594 & .764 & .602 & .362 & .387 & .720/\textbf{.750} & .436/.482\\
+\hline
+
+\hline
+
+\end{tabular}}
+\end{document}

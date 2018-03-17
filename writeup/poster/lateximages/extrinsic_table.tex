@@ -1,0 +1,41 @@
+\documentclass{standalone}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{multirow}
+\usepackage[noend]{algpseudocode}
+\usepackage{multirow,multicol, makecell, booktabs}
+\usepackage{url}
+\begin{document}
+
+\begin{tabular}{ |c|cc|c|c|}
+\hline
+\makecell{Word Vector Type} &
+\makecell{Bits per \\ parameter} &
+\makecell{Dimension} &
+\makecell{Bytes per word} &
+\makecell{F1} \\
+\hline
+
+\multirow{4}{6em}{Full Precision}
+& 32 & 200 & 800 & 75.25\\
+& 32 & 400 & 1600 & 75.28\\
+& 32 & 800 & 3200 & 75.31\\
+& 32 & 1000 & 4000 & 9.99\\
+\hline
+\multirow{6}{6em}{\makecell{Quantized}}
+& 1 & 800 & 100 & 76.64\\
+& 1 & 1000 & 125 & 76.84\\
+& 1 & 1200 & 150 & 76.50\\
+& 2 & 400 & 100 & \textbf{77.04}\\
+& 2 & 800 & 200 & 76.12\\
+& 2 & 1000 & 250 & 75.66\\
+\hline
+
+\hline
+
+\end{tabular}
+\end{document}
