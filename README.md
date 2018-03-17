@@ -23,17 +23,17 @@
 ## Download Pretrained Word Vectors
 
 | # Bits per parameter        | Dimension     | Trained on             | Vocabulary size  | File Size (Compressed) | Download Link |
-| --------------------------- | ------------- | ---------------------- | ---------------- | ---------------------- | ------------- |
-| 1                           | 800           | English Wikipedia 2017 | Top 400k words   | 86M                    |               |
-| 1                           | 1000          | English Wikipedia 2017 | Top 400k words   | 107M                   |               |
-| 1                           | 1200          | English Wikipedia 2017 | Top 400k words   | 127M                   |               |
-| 2                           | 400           | English Wikipedia 2017 | Top 400k words   | 68M                    |               |
-| 2                           | 800           | English Wikipedia 2017 | Top 400k words   | 134M                   |               |
-| 2                           | 1000          | English Wikipedia 2017 | Top 400k words   | 168M                   |               |
-| 32                          | 200           | English Wikipedia 2017 | Top 400k words   | 365M                   |               |
-| 32                          | 400           | English Wikipedia 2017 | Top 400k words   | 724M                   |               |
-| 32                          | 800           | English Wikipedia 2017 | Top 400k words   | 1.5G                   |               |
-| 32                          | 1000          | English Wikipedia 2017 | Top 400k words   | 1.8G                   |               |
+|:---------------------------:|:-------------:|:----------------------:|:----------------:|:----------------------:|:-------------:|
+| 1                           | 800           | English Wikipedia 2017 | Top 400k         | 86M                    |               |
+| 1                           | 1000          | English Wikipedia 2017 | Top 400k         | 107M                   |               |
+| 1                           | 1200          | English Wikipedia 2017 | Top 400k         | 127M                   |               |
+| 2                           | 400           | English Wikipedia 2017 | Top 400k         | 68M                    |               |
+| 2                           | 800           | English Wikipedia 2017 | Top 400k         | 134M                   |               |
+| 2                           | 1000          | English Wikipedia 2017 | Top 400k         | 168M                   |               |
+| 32                          | 200           | English Wikipedia 2017 | Top 400k         | 365M                   |               |
+| 32                          | 400           | English Wikipedia 2017 | Top 400k         | 724M                   |               |
+| 32                          | 800           | English Wikipedia 2017 | Top 400k         | 1.5G                   |               |
+| 32                          | 1000          | English Wikipedia 2017 | Top 400k         | 1.8G                   |               |
 | 1                           | 800           | English Wikipedia 2017 | 3.7M (Full)      | 813M                   |               |
 | 2                           | 400           | English Wikipedia 2017 | 3.7M (Full)      | 671M                   |               |
 | 32                          | 400           | English Wikipedia 2017 | 3.7M (Full)      | 6.8G                   |               |
