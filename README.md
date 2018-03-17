@@ -22,9 +22,7 @@
 
 ## Download Pretrained Word Vectors
 
-All word vectors are in Glove/Fasttext format
-* Line 1 : vocab_size word_vector_dimension
-* Line 2+: word parameter_value_1 parameter_value_2 ...
+* All word vectors are in Glove/Fasttext format
 
 | # Bits per parameter        | Dimension     | Trained on             | Vocabulary size  | File Size (Compressed) | Download Link |
 |:---------------------------:|:-------------:|:----------------------:|:----------------:|:----------------------:|:-------------:|
