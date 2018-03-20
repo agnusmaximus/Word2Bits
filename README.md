@@ -62,7 +62,7 @@ Run with
 Description of the most common flags:
 ```
 -train                       Input corpus text file
--bitlevel          Number of bits for each parameter. 0 is full precision (or 32 bits).
+-bitlevel          	     Number of bits for each parameter. 0 is full precision (or 32 bits).
 -size                        Word vector dimension
 -window                      Window size
 -negative                    Negative sample size
