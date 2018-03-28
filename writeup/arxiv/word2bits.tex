@@ -1,4 +1,4 @@
-\Pdfoutput=1
+\pdfoutput=1
 \documentclass{article} % For LaTeX2e
 \usepackage{nips13submit_e,times}
 \usepackage{graphicx}
@@ -163,7 +163,7 @@ $$
 u_o = \mbox{ vector of center word with corpus position } o
 $$
 $$
-\hat{v}_c = \frac{1}{2w-1}\sum_{-w+o \leq i \leq w+o,i \neq o} v_i \mbox{  where } v_i \mbox{ is vector for context word, } w \mbox{ is window size, a hyperparameter}
+\hat{v}_c = \frac{1}{2w}\sum_{-w+o \leq i \leq w+o,i \neq o} v_i \mbox{  where } v_i \mbox{ is vector for context word, } w \mbox{ is window size, a hyperparameter}
 $$
 $$
 k = \mbox{ number of negative samples, a hyperparameter}
@@ -180,7 +180,7 @@ Technically, to optimize this loss function, for each window of words:
 \begin{enumerate}
 
 \item[$\bullet$] Identify the center word's vector $u_o$ within the window
-\item[$\bullet$] Compute the average of the context words $\hat{v}_c = \frac{1}{2w-1} \sum_{-w+o \leq i \leq w+o, i \neq o} v_i$ given window size $w$
+\item[$\bullet$] Compute the average of the context words $\hat{v}_c = \frac{1}{2w} \sum_{-w+o \leq i \leq w+o, i \neq o} v_i$ given window size $w$
 \item[$\bullet$] Draw $k$ negative samples $u_1, u_2, .., u_k$ according to a sampling distribution [1].
 \item[$\bullet$] Compute loss $J(u_o, \hat{v}_c) = -log(\sigma(u_o^T\hat{v}_c)) - \sum_{i=1}^{k} log(\sigma(-u_i^T\hat{v}_c))$
 \item[$\bullet$] Update center word vector $u_o$ with gradient $\frac{\partial J(u_o, \hat{v}_c)}{\partial u_o}$
