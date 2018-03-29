@@ -439,8 +439,8 @@ void *TrainModelThread(void *id) {
 	  local_reg_loss += cur_val * cur_val;
 	}
 	local_reg_loss = reg * local_reg_loss;
-	loss += local_reg_loss;
-	total_loss += local_reg_loss;
+	loss += -local_reg_loss;
+	total_loss += -local_reg_loss;
 	cw++;
       }
     if (cw) {
@@ -477,8 +477,8 @@ void *TrainModelThread(void *id) {
 	////////////////////
 	real dot_product = f * pow(-1, 1-label);
 	real local_loss = log(sigmoid(dot_product));
-	loss += local_loss + local_reg_loss;
-	total_loss += local_loss + local_reg_loss;
+	loss += local_loss - local_reg_loss;
+	total_loss += local_loss - local_reg_loss;
 	/////////////////////
 	
 	for (c = 0; c < layer1_size; c++) {
