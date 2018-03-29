@@ -51,7 +51,6 @@ long long vocab_max_size = 1000, vocab_size = 0, layer1_size = 100;
 long long train_words = 0, word_count_actual = 0, iter = 5, file_size = 0, classes = 0;
 bool save_every_epoch = 0;
 real alpha = 0.05, starting_alpha, sample = 1e-3;
-//real reg = .005;
 real reg = 0;
 double *thread_losses;
 real *u, *v, *expTable;
@@ -595,6 +594,7 @@ int main(int argc, char **argv) {
   if ((i = ArgPos((char *)"-save-every-epoch", argc, argv)) > 0) save_every_epoch = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-bitlevel", argc, argv)) > 0) bitlevel = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-size", argc, argv)) > 0) layer1_size = atoi(argv[i + 1]);
+  if ((i = ArgPos((char *)"-reg", argc, argv)) > 0) reg = atof(argv[i + 1]);
   if ((i = ArgPos((char *)"-train", argc, argv)) > 0) strcpy(train_file, argv[i + 1]);
   if ((i = ArgPos((char *)"-debug", argc, argv)) > 0) debug_mode = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-binary", argc, argv)) > 0) binary = atoi(argv[i + 1]);
