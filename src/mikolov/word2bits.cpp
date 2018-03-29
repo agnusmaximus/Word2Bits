@@ -49,9 +49,10 @@ int binary = 0, debug_mode = 2, window = 5, min_count = 5, num_threads = 12, min
 int *vocab_hash;
 long long vocab_max_size = 1000, vocab_size = 0, layer1_size = 100;
 long long train_words = 0, word_count_actual = 0, iter = 5, file_size = 0, classes = 0;
-bool save_every_epoch = 1;
+bool save_every_epoch = 0;
+//real alpha = 0.05, starting_alpha, sample = 1e-3;
 real alpha = 0.05, starting_alpha, sample = 1e-3;
-real *thread_losses;
+double *thread_losses;
 real *u, *v, *expTable;
 clock_t start;
 
@@ -376,7 +377,7 @@ void *TrainModelThread(void *id) {
   clock_t now;
   real *context_avg = (real *)calloc(layer1_size, sizeof(real));
   real *context_avge = (real *)calloc(layer1_size, sizeof(real));
-  real loss = 0, total_loss = 0;  
+  double loss = 0, total_loss = 0;  
   FILE *fi = fopen(train_file, "rb");
   fseek(fi, file_size / (long long)num_threads * (long long)id, SEEK_SET);
   while (1) {
@@ -498,7 +499,7 @@ void *TrainModelThread(void *id) {
 void TrainModel() {
   long a, b;
   FILE *fo;
-  thread_losses = (real *)malloc(sizeof(real) * num_threads);
+  thread_losses = (double *)malloc(sizeof(double) * num_threads);
   pthread_t *pt = (pthread_t *)malloc(num_threads * sizeof(pthread_t));
   printf("Starting training using file %s\n", train_file);
   starting_alpha = alpha;
@@ -511,12 +512,12 @@ void TrainModel() {
   start = clock();
   for (int iteration = 0; iteration < iter; iteration++) {
     printf("Starting epoch: %d\n", iteration);
-    memset(thread_losses, 0, sizeof(real) * num_threads);
+    memset(thread_losses, 0, sizeof(double) * num_threads);
     for (a = 0; a < num_threads; a++) pthread_create(&pt[a], NULL, TrainModelThread, (void *)a);
     for (a = 0; a < num_threads; a++) pthread_join(pt[a], NULL);
-    real total_loss_epoch = 0;
+    double total_loss_epoch = 0;
     for (a = 0; a < num_threads; a++) total_loss_epoch += thread_losses[a];
-    printf("Epoch Loss: %f\n", total_loss_epoch);
+    printf("Epoch Loss: %lf\n", total_loss_epoch);
     char output_file_cur_iter[MAX_STRING] = {0};
     sprintf(output_file_cur_iter, "%s_epoch%d", output_file, iteration);
     fo = fopen(output_file_cur_iter, "wb");

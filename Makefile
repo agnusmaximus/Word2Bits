@@ -21,9 +21,9 @@ FULLWIKISAVEDIR := /lfs/1/maxlam/w2bvectors/
 # Shared variables
 SAVE_FILE=$(SAVEDIR)/vectors
 WINDOW_SIZE=10
-VECTOR_SIZE=1000
-NUM_THREADS=45
-MAX_ITER=25
+VECTOR_SIZE=800
+NUM_THREADS=16
+MAX_ITER=5
 
 # Glove variables
 QUESTION_DATA_PATH=./data/google_analogies_test_set/question-data/
