@@ -50,8 +50,9 @@ int *vocab_hash;
 long long vocab_max_size = 1000, vocab_size = 0, layer1_size = 100;
 long long train_words = 0, word_count_actual = 0, iter = 5, file_size = 0, classes = 0;
 bool save_every_epoch = 0;
-//real alpha = 0.05, starting_alpha, sample = 1e-3;
 real alpha = 0.05, starting_alpha, sample = 1e-3;
+//real reg = .005;
+real reg = 0;
 double *thread_losses;
 real *u, *v, *expTable;
 clock_t start;
@@ -64,16 +65,9 @@ int *table;
 //              Word2Bits                //
 ///////////////////////////////////////////
 
-real min_val = 1000000000, max_val = -1000000000;
-
-typedef union {
-  float f;
-  struct {
-    unsigned int mantisa : 23;
-    unsigned int exponent : 8;
-    unsigned int sign : 1;
-  } parts;
-} float_cast;
+real sigmoid(real val) {
+  return 1 / (1 + (real)exp(-val));
+}
 
 real quantize(real num, int bitlevel) {
 
@@ -439,9 +433,16 @@ void *TrainModelThread(void *id) {
 	if (c >= sentence_length) continue;
 	last_word = sen[c];
 	if (last_word == -1) continue;
-	for (c = 0; c < layer1_size; c++)
-	  context_avg[c] += quantize(u[c + last_word * layer1_size], local_bitlevel);
-	  cw++;
+	real local_reg_loss = 0;
+	for (c = 0; c < layer1_size; c++) {
+	  real cur_val = quantize(u[c + last_word * layer1_size], local_bitlevel);
+	  context_avg[c] += cur_val;
+	  local_reg_loss += cur_val * cur_val;
+	}
+	local_reg_loss = reg * local_reg_loss;
+	loss += local_reg_loss;
+	total_loss += local_reg_loss;
+	cw++;
       }
     if (cw) {
       for (c = 0; c < layer1_size; c++) context_avg[c] /= cw;
@@ -458,17 +459,34 @@ void *TrainModelThread(void *id) {
 	}
 	l2 = target * layer1_size;
 	f = 0;
-	for (c = 0; c < layer1_size; c++) f += context_avg[c] * quantize(v[c + l2], local_bitlevel);
+	real local_reg_loss = 0;
+	for (c = 0; c < layer1_size; c++) {
+	  real cur_val = quantize(v[c + l2], local_bitlevel);
+	  f += context_avg[c] * cur_val;
+
+	  // Keep track of regularization loss
+	  local_reg_loss += cur_val * cur_val;
+	}
+	local_reg_loss = reg * local_reg_loss;
+	
 	if (f > MAX_EXP) g = (label - 1) * alpha;
 	else if (f < -MAX_EXP) g = (label - 0) * alpha;
 	else g = (label - expTable[(int)((f + MAX_EXP) * (EXP_TABLE_SIZE / MAX_EXP / 2))]) * alpha;
-	loss += g / alpha;
-	total_loss += g / alpha;
+
+	////////////////////
+	// Compute loss
+	////////////////////
+	real dot_product = f * pow(-1, 1-label);
+	real local_loss = log(sigmoid(dot_product));
+	loss += local_loss + local_reg_loss;
+	total_loss += local_loss + local_reg_loss;
+	/////////////////////
+	
 	for (c = 0; c < layer1_size; c++) {
 	  context_avge[c] += g * quantize(v[c + l2], local_bitlevel);
 	}
 	for (c = 0; c < layer1_size; c++) {
-	  v[c + l2] += g * context_avg[c];
+	  v[c + l2] += g * context_avg[c] - 2*alpha*reg*v[c + l2];
 	}
       }
       // hidden -> in
@@ -479,7 +497,7 @@ void *TrainModelThread(void *id) {
 	  last_word = sen[c];
 	  if (last_word == -1) continue;
 	  for (c = 0; c < layer1_size; c++) {
-	    u[c + last_word * layer1_size] += context_avge[c];
+	    u[c + last_word * layer1_size] += context_avge[c] - 2*alpha*reg*u[c+last_word*layer1_size];
 	  }
 	}
     }
