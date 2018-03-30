@@ -537,8 +537,8 @@ void TrainModel() {
     printf("Epoch Loss: %lf\n", total_loss_epoch);
     char output_file_cur_iter[MAX_STRING] = {0};
     sprintf(output_file_cur_iter, "%s_epoch%d", output_file, iteration);
-    fo = fopen(output_file_cur_iter, "wb");
     if (classes == 0 && save_every_epoch) {
+      fo = fopen(output_file_cur_iter, "wb");
       // Save the word vectors
       fprintf(fo, "%lld %lld\n", vocab_size, layer1_size);
       for (a = 0; a < vocab_size; a++) {
@@ -551,8 +551,8 @@ void TrainModel() {
 	}
 	fprintf(fo, "\n");
       }
+      fclose(fo);
     }
-    fclose(fo);
   }
 
   // Write an extra file
