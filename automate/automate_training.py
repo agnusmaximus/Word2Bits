@@ -19,7 +19,7 @@ global verbosity
 PAUSE_TIME = 60
 
 # Directory structure
-results_directory = "./automate_results"
+results_directory = os.path.abspath("./automate_results")
 outputlog_directory = "%s/output_logs" % results_directory
 vectors_directory = "%s/output_vectors" % results_directory
 
@@ -117,7 +117,7 @@ def mkdirp(path):
 def perform_command_remote(target, command, suppress_log=False):
     if not suppress_log:
         important_log("Performing command on target %s: '%s'" % (target, command))
-    status, text = commands.getstatusoutput("ssh -q %s '%s'" % (target, command))
+    status, text = commands.getstatusoutput("ssh -t -q %s '%s'" % (target, command))
     exit_code = status >> 8
     return text, exit_code
 
@@ -150,11 +150,26 @@ def wait_for_available_target(targets):
             str(available_targets),
             str(unavailable_targets)))
         if len(available_targets) > 0:
-            return available_targets[0]
+            available_target = available_targets[0]
+
+            # Shut tmux down on available target
+            perform_command_remote(available_target, 'tmux kill-server')
+            
+            return available_target, len(available_targets)
         time.sleep(PAUSE_TIME)
+
+    assert 0
+    
+    # Should not reach here
     return available_target
 
-def train_vector_on_target(target, arg_dict, raw_args_list):
+def run_async_krbtmux_command(command):
+    assert '"' not in command
+    cur_path, exit_status = perform_command_local('pwd')    
+    return 'bash %s/automate/maxstmux new "%s" ";" detach' % (cur_path, command)
+
+
+def train_vector_on_target(target, arg_dict, raw_args_list, w2b_path):
     identifier = argument_dict_to_string(arg_dict)
     train_log_path = "%s/log_%s" % (outputlog_directory,
                                     identifier)
@@ -163,7 +178,8 @@ def train_vector_on_target(target, arg_dict, raw_args_list):
     arg_dict_with_output_path = (
         argument_dict_from_hyperparameters(*(raw_args_list + (vector_output_path,))))    
     full_argument_string = argument_dict_to_parameter_string(arg_dict_with_output_path)
-    print(full_argument_string)
+    full_command_string = "%s %s > %s" % (w2b_path, full_argument_string, train_log_path)
+    perform_command_remote(target, run_async_krbtmux_command(full_command_string))
 
 if __name__=="__main__":
     # python automate/automate_training.py dawn16.stanford.edu,dawn9.stanford.edu maxlam
@@ -191,10 +207,17 @@ if __name__=="__main__":
     hyperparameter_lists = [hyperparams[k] for k in hyperparam_keys]
     for cfg_permutation in itertools.product(*hyperparameter_lists):
         cfg_argument_dict = argument_dict_from_hyperparameters(*cfg_permutation)
-        available_target = wait_for_available_target(targets)
-        train_vector_on_target(available_target, cfg_argument_dict, cfg_permutation)
+        available_target, n_available = wait_for_available_target(targets)
+        train_vector_on_target(available_target, cfg_argument_dict, cfg_permutation, w2b_path)
+
+    # Wait for all targets to be available
+    n_available = 0
+    while n_available != len(targets):
+        _, n_available = wait_for_available_target(targets)
     
-    print(w2b_path)    
-    print(perform_commands(targets, 'pgrep -u "$(whoami)" w2b'))
-    print(perform_command_local("pwd"))
+    # Example commands (commented out)
+    #print(perform_commands(targets, run_async_krbtmux_command("sleep 60; echo `hostname` > /dfs/scratch0/maxlam/testing`hostname`")))
+    #print(perform_commands(targets, 'pgrep -u "$(whoami)" w2b'))
+    #print(perform_command_local("pwd"))
+    
     
