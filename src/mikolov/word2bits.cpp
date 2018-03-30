@@ -65,6 +65,8 @@ int *table;
 ///////////////////////////////////////////
 
 real sigmoid(real val) {
+  if (val > MAX_EXP) return 1;
+  if (val < -MAX_EXP) return 1e-9;
   return 1 / (1 + (real)exp(-val));
 }
 
