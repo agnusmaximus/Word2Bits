@@ -85,7 +85,12 @@ benchmark-mikolov-large:
 
 	@echo Evaluating Mikolov
 	$(BUILDDIR)/compute_accuracy_mikolov $(FULLWIKI_MIKOLOV_SAVE_FILE)_fullwiki_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_reg${REG}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} < data/google_analogies_test_set/questions-words.txt >> ${FILEOUT}
+
+compile:
+	$(CC_MIKOLOV) $(MIKOLOV_DIR)/word2bits.cpp $(CFLAGS) -o w2b
+
 clean:
+	rm -f w2b
 	rm -f $(BUILDDIR)/word2bits_mikolov_r
 	rm -f $(BUILDDIR)/word2bits_mikolov
 	rm -f $(BUILDDIR)/compute_accuracy_mikolov
