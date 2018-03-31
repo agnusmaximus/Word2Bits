@@ -1,3 +1,5 @@
+//  Copyright 2013 Google Inc. All Rights Reserved.
+//
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
@@ -49,7 +51,8 @@ long long vocab_max_size = 1000, vocab_size = 0, layer1_size = 100;
 long long train_words = 0, word_count_actual = 0, iter = 5, file_size = 0, classes = 0;
 bool save_every_epoch = 0;
 real alpha = 0.05, starting_alpha, sample = 1e-3;
-real *thread_losses;
+real reg = 0;
+double *thread_losses;
 real *u, *v, *expTable;
 clock_t start;
 
@@ -61,27 +64,33 @@ int *table;
 //              Word2Bits                //
 ///////////////////////////////////////////
 
+real sigmoid(real val) {
+  if (val > MAX_EXP) return 1;
+  if (val < -MAX_EXP) return 1e-9;
+  return 1 / (1 + (real)exp(-val));
+}
+
 real quantize(real num, int bitlevel) {
 
   if (bitlevel == 0) {
     // Special bitlevel 0 => full precision
     return num;
   }
-
+  
   // Extract sign
   real retval = 0;
   real sign = num < 0 ? -1 : 1;
   num *= sign;
-
+  
   // Boundaries: 0
   if (bitlevel == 1) {
     return sign / 3;
   }
-
+  
   // Determine boundary and discrete activation value (2 bits)
   // Boundaries: 0, .5
   if (bitlevel == 2) {
-    if (num >= 0 && num <= .5) retval = .25;
+    if (num >= 0 && num <= .5) retval = .25; 
     else retval = .75;
   }
 
@@ -122,7 +131,7 @@ void InitUnigramTable() {
 void ReadWord(char *word, FILE *fin, char *eof) {
   int a = 0, ch;
   while (1) {
-    ch = fgetc(fin);
+    ch = fgetc_unlocked(fin);
     if (ch == EOF) {
       *eof = 1;
       break;
@@ -313,8 +322,7 @@ void ReadVocab() {
     ReadWord(word, fin, &eof);
     if (eof) break;
     a = AddWordToVocab(word);
-    if (fscanf(fin, "%lld%c", &vocab[a].cn, &c))
-	;
+    if (fscanf(fin, "%lld%c", &vocab[a].cn, &c));
     i++;
   }
   SortVocab();
@@ -345,7 +353,7 @@ void InitNet() {
       v[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) ;
     }
   }
-  for (a = 0; a < vocab_size; a++)
+  for (a = 0; a < vocab_size; a++) 
     for (b = 0; b < layer1_size; b++) {
       next_random = next_random * (unsigned long long)25214903917 + 11;
       u[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) ;
@@ -364,7 +372,7 @@ void *TrainModelThread(void *id) {
   clock_t now;
   real *context_avg = (real *)calloc(layer1_size, sizeof(real));
   real *context_avge = (real *)calloc(layer1_size, sizeof(real));
-  real loss = 0, total_loss = 0;
+  double loss = 0, total_loss = 0;  
   FILE *fi = fopen(train_file, "rb");
   fseek(fi, file_size / (long long)num_threads * (long long)id, SEEK_SET);
   while (1) {
@@ -426,9 +434,16 @@ void *TrainModelThread(void *id) {
 	if (c >= sentence_length) continue;
 	last_word = sen[c];
 	if (last_word == -1) continue;
-	for (c = 0; c < layer1_size; c++)
-	  context_avg[c] += quantize(u[c + last_word * layer1_size], local_bitlevel);
-	  cw++;
+	real local_reg_loss = 0;
+	for (c = 0; c < layer1_size; c++) {
+	  real cur_val = quantize(u[c + last_word * layer1_size], local_bitlevel);
+	  context_avg[c] += cur_val;
+	  local_reg_loss += cur_val * cur_val;
+	}
+	local_reg_loss = reg * local_reg_loss;
+	loss += -local_reg_loss;
+	total_loss += -local_reg_loss;
+	cw++;
       }
     if (cw) {
       for (c = 0; c < layer1_size; c++) context_avg[c] /= cw;
@@ -445,17 +460,34 @@ void *TrainModelThread(void *id) {
 	}
 	l2 = target * layer1_size;
 	f = 0;
-	for (c = 0; c < layer1_size; c++) f += context_avg[c] * quantize(v[c + l2], local_bitlevel);
+	real local_reg_loss = 0;
+	for (c = 0; c < layer1_size; c++) {
+	  real cur_val = quantize(v[c + l2], local_bitlevel);
+	  f += context_avg[c] * cur_val;
+
+	  // Keep track of regularization loss
+	  local_reg_loss += cur_val * cur_val;
+	}
+	local_reg_loss = reg * local_reg_loss;
+	
 	if (f > MAX_EXP) g = (label - 1) * alpha;
 	else if (f < -MAX_EXP) g = (label - 0) * alpha;
 	else g = (label - expTable[(int)((f + MAX_EXP) * (EXP_TABLE_SIZE / MAX_EXP / 2))]) * alpha;
-	loss += g / alpha;
-	total_loss += g / alpha;
+
+	////////////////////
+	// Compute loss
+	////////////////////
+	real dot_product = f * pow(-1, 1-label);
+	real local_loss = log(sigmoid(dot_product));
+	loss += local_loss - local_reg_loss;
+	total_loss += local_loss - local_reg_loss;
+	/////////////////////
+	
 	for (c = 0; c < layer1_size; c++) {
 	  context_avge[c] += g * quantize(v[c + l2], local_bitlevel);
 	}
 	for (c = 0; c < layer1_size; c++) {
-	  v[c + l2] += g * context_avg[c];
+	  v[c + l2] += g * context_avg[c] - 2*alpha*reg*v[c + l2];
 	}
       }
       // hidden -> in
@@ -466,7 +498,7 @@ void *TrainModelThread(void *id) {
 	  last_word = sen[c];
 	  if (last_word == -1) continue;
 	  for (c = 0; c < layer1_size; c++) {
-	    u[c + last_word * layer1_size] += context_avge[c];
+	    u[c + last_word * layer1_size] += context_avge[c] - 2*alpha*reg*u[c+last_word*layer1_size];
 	  }
 	}
     }
@@ -486,7 +518,7 @@ void *TrainModelThread(void *id) {
 void TrainModel() {
   long a, b;
   FILE *fo;
-  thread_losses = (real *)malloc(sizeof(real) * num_threads);
+  thread_losses = (double *)malloc(sizeof(double) * num_threads);
   pthread_t *pt = (pthread_t *)malloc(num_threads * sizeof(pthread_t));
   printf("Starting training using file %s\n", train_file);
   starting_alpha = alpha;
@@ -499,12 +531,12 @@ void TrainModel() {
   start = clock();
   for (int iteration = 0; iteration < iter; iteration++) {
     printf("Starting epoch: %d\n", iteration);
-    memset(thread_losses, 0, sizeof(real) * num_threads);
+    memset(thread_losses, 0, sizeof(double) * num_threads);
     for (a = 0; a < num_threads; a++) pthread_create(&pt[a], NULL, TrainModelThread, (void *)a);
     for (a = 0; a < num_threads; a++) pthread_join(pt[a], NULL);
-    real total_loss_epoch = 0;
+    double total_loss_epoch = 0;
     for (a = 0; a < num_threads; a++) total_loss_epoch += thread_losses[a];
-    printf("Epoch Loss: %f\n", total_loss_epoch);
+    printf("Epoch Loss: %lf\n", total_loss_epoch);
     char output_file_cur_iter[MAX_STRING] = {0};
     sprintf(output_file_cur_iter, "%s_epoch%d", output_file, iteration);
     if (classes == 0 && save_every_epoch) {
@@ -541,7 +573,7 @@ void TrainModel() {
       fprintf(fo, "\n");
       }
   }
-  fclose(fo);
+  fclose(fo);  
 }
 
 int ArgPos(char *str, int argc, char **argv) {
@@ -564,6 +596,7 @@ int main(int argc, char **argv) {
   if ((i = ArgPos((char *)"-save-every-epoch", argc, argv)) > 0) save_every_epoch = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-bitlevel", argc, argv)) > 0) bitlevel = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-size", argc, argv)) > 0) layer1_size = atoi(argv[i + 1]);
+  if ((i = ArgPos((char *)"-reg", argc, argv)) > 0) reg = atof(argv[i + 1]);
   if ((i = ArgPos((char *)"-train", argc, argv)) > 0) strcpy(train_file, argv[i + 1]);
   if ((i = ArgPos((char *)"-debug", argc, argv)) > 0) debug_mode = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-binary", argc, argv)) > 0) binary = atoi(argv[i + 1]);
