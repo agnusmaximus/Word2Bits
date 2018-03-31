@@ -16,7 +16,7 @@ import commands
 global verbosity
 
 # Seconds in between checking for available machine
-PAUSE_TIME = 60
+PAUSE_TIME = 5
 
 # Directory structure
 results_directory = os.path.abspath("./automate_results")
@@ -46,6 +46,7 @@ hyperparam_keys = ["epochs",
                    "output_as_binary",
                    "threads"]
 
+        
 def extract_bitlevel_reg_from_param(bitlevel_reg):
     bitlevel, reg = None, None
     if type(bitlevel_reg) == type(""):
@@ -153,7 +154,7 @@ def wait_for_available_target(targets):
             available_target = available_targets[0]
 
             # Shut tmux down on available target
-            perform_command_remote(available_target, 'tmux kill-server')
+            #perform_command_remote(available_target, 'tmux kill-server')
             
             return available_target, len(available_targets)
         time.sleep(PAUSE_TIME)
@@ -182,6 +183,7 @@ def train_vector_on_target(target, arg_dict, raw_args_list, w2b_path):
     perform_command_remote(target, run_async_krbtmux_command(full_command_string))
 
 if __name__=="__main__":
+
     # python automate/automate_training.py dawn16.stanford.edu,dawn9.stanford.edu maxlam
     print("Usage: python automate_training.py host1,host2,..hostn username private_key_path [verbosity]")
     print("Automating training...")
