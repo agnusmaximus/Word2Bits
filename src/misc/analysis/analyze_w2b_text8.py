@@ -5,206 +5,74 @@ import re
 
 
 font = {'family' : 'normal',
-        'size'   : 17}
+        'size'   : 15}
 matplotlib.rc('font', **font)
 matplotlib.rcParams['axes.color_cycle'] = ['r', 'b', 'g']
 
 raw_data_loss = """
-FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1071769.750000
-FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -1415233.000000
-FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1659229.875000
-FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1190172.875000
-FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1221467.500000
-FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -753892.437500
-FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1061762.875000
-FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1045094.062500
-FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1313231.250000
-FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -832586.062500
-FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1304812.875000
-FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1221771.625000
-FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1318932.500000
-FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -997424.500000
-FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1552922.750000
-FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1325409.750000
-FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1237996.500000
-FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -1158675.750000
-FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1644165.500000
-FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1328016.000000
-FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1128149.375000
-FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -1299052.250000
-FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1674992.250000
-FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1259589.500000
-FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -2829206.500000
-FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -3486937.500000
-FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -3421035.000000
-FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -2825446.000000
-FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1797508.500000
-FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -1974106.250000
-FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1856376.375000
-FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1734178.625000
-FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1963575.875000
-FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -2135621.500000
-FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -2099206.000000
-FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1917069.500000
-FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -2220549.250000
-FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -2500144.250000
-FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -2475755.250000
-FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -2193741.750000
-FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -2437665.000000
-FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -2851394.000000
-FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -2809894.750000
-FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -2421905.750000
-FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -2595184.500000
-FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -3162244.500000
-FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -3093206.000000
-FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -2589464.000000
-FINAL_vectors_datasettext8_epochs25_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -679846.062500
-FINAL_vectors_datasettext8_epochs25_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -1261247.000000
-FINAL_vectors_datasettext8_epochs25_size1000_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1382681.125000
-FINAL_vectors_datasettext8_epochs25_size1000_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -953844.500000
-FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1126064.625000
-FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -833709.625000
-FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1050440.875000
-FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1007858.375000
-FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1161860.875000
-FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -815700.312500
-FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1247816.500000
-FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1121647.250000
-FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1065952.375000
-FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -957509.500000
-FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1421540.750000
-FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1170037.375000
-FINAL_vectors_datasettext8_epochs25_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -922933.437500
-FINAL_vectors_datasettext8_epochs25_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -1083053.250000
-FINAL_vectors_datasettext8_epochs25_size600_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1462955.250000
-FINAL_vectors_datasettext8_epochs25_size600_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1085512.750000
-FINAL_vectors_datasettext8_epochs25_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -803777.750000
-FINAL_vectors_datasettext8_epochs25_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -1184371.000000
-FINAL_vectors_datasettext8_epochs25_size800_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1434678.750000
-FINAL_vectors_datasettext8_epochs25_size800_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1019785.500000
-FINAL_vectors_datasettext8_epochs50_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -467860.312500
-FINAL_vectors_datasettext8_epochs50_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -1195149.500000
-FINAL_vectors_datasettext8_epochs50_size1000_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1284468.500000
-FINAL_vectors_datasettext8_epochs50_size1000_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -842619.000000
-FINAL_vectors_datasettext8_epochs50_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1048019.125000
-FINAL_vectors_datasettext8_epochs50_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -817689.250000
-FINAL_vectors_datasettext8_epochs50_size100_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1056793.875000
-FINAL_vectors_datasettext8_epochs50_size100_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -988726.875000
-FINAL_vectors_datasettext8_epochs50_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -1053391.125000
-FINAL_vectors_datasettext8_epochs50_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -799736.000000
-FINAL_vectors_datasettext8_epochs50_size200_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1237093.375000
-FINAL_vectors_datasettext8_epochs50_size200_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1090314.750000
-FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -915786.125000
-FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -943749.437500
-FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1377081.875000
-FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1092144.250000
-FINAL_vectors_datasettext8_epochs50_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -743415.937500
-FINAL_vectors_datasettext8_epochs50_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -1053669.000000
-FINAL_vectors_datasettext8_epochs50_size600_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1378394.125000
-FINAL_vectors_datasettext8_epochs50_size600_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -1025477.812500
-FINAL_vectors_datasettext8_epochs50_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -595856.812500
-FINAL_vectors_datasettext8_epochs50_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -1132967.250000
-FINAL_vectors_datasettext8_epochs50_size800_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Loss: -1336001.000000
-FINAL_vectors_datasettext8_epochs50_size800_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Loss: -907234.562500
+FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -14041561.412106
+FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -22689613.342159
+FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -25171443.291375
+FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -31417681.372819
+FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -22684451.344750
+FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -28371027.509497
+FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -19384569.665623
+FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -25589477.472935
+FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -17070627.162396
+FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -24111435.850717
+FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -15376325.296737
+FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -23226056.910831
+FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -40774070.195447
+FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -43665983.774668
+FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -33809905.118557
+FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -37223200.200410
+FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -34141547.321955
+FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -35813477.861683
+FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -35327581.167812
+FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -36539333.561266
+FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -36814496.815330
+FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -38446856.297847
+FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -38867384.115556
+FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -41245631.140832
+FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -23930429.443405
+FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -31062211.303430
+FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -20736285.122460
+FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -27615445.026728
+FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -16514659.878059
+FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -24586074.512452
 """
 
 raw_data_acc = """
-FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 21.88 % Semantic accuracy: 25.31 % Syntactic accuracy: 19.44 %
-FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 29.32 % Semantic accuracy: 39.06 % Syntactic accuracy: 22.37 %
-FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 24.72 % Semantic accuracy: 31.32 % Syntactic accuracy: 20.02 %
-FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 23.30 % Semantic accuracy: 27.56 % Syntactic accuracy: 20.26 %
-FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 31.73 % Semantic accuracy: 35.53 % Syntactic accuracy: 29.03 %
-FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 5.64 % Semantic accuracy: 5.97 % Syntactic accuracy: 5.40 %
-FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 16.60 % Semantic accuracy: 21.09 % Syntactic accuracy: 13.41 %
-FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 19.23 % Semantic accuracy: 22.78 % Syntactic accuracy: 16.70 %
-FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 33.02 % Semantic accuracy: 39.58 % Syntactic accuracy: 28.35 %
-FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 17.27 % Semantic accuracy: 19.42 % Syntactic accuracy: 15.73 %
-FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 26.72 % Semantic accuracy: 34.18 % Syntactic accuracy: 21.41 %
-FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 28.58 % Semantic accuracy: 35.48 % Syntactic accuracy: 23.67 %
-FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 30.60 % Semantic accuracy: 37.82 % Syntactic accuracy: 25.45 %
-FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 28.69 % Semantic accuracy: 38.71 % Syntactic accuracy: 21.55 %
-FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 30.01 % Semantic accuracy: 40.53 % Syntactic accuracy: 22.51 %
-FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 29.42 % Semantic accuracy: 37.57 % Syntactic accuracy: 23.61 %
-FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 27.87 % Semantic accuracy: 34.36 % Syntactic accuracy: 23.25 %
-FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 31.13 % Semantic accuracy: 41.90 % Syntactic accuracy: 23.46 %
-FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 29.05 % Semantic accuracy: 38.16 % Syntactic accuracy: 22.56 %
-FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 27.97 % Semantic accuracy: 35.44 % Syntactic accuracy: 22.65 %
-FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 24.24 % Semantic accuracy: 27.75 % Syntactic accuracy: 21.75 %
-FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 30.84 % Semantic accuracy: 41.67 % Syntactic accuracy: 23.12 %
-FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 25.58 % Semantic accuracy: 33.86 % Syntactic accuracy: 19.68 %
-FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 24.82 % Semantic accuracy: 30.08 % Syntactic accuracy: 21.06 %
-FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 7.90 % Semantic accuracy: 7.61 % Syntactic accuracy: 8.11 %
-FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 7.80 % Semantic accuracy: 9.24 % Syntactic accuracy: 6.78 %
-FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 6.82 % Semantic accuracy: 6.41 % Syntactic accuracy: 7.11 %
-FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 7.76 % Semantic accuracy: 7.34 % Syntactic accuracy: 8.06 %
-FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 17.85 % Semantic accuracy: 19.57 % Syntactic accuracy: 16.64 %
-FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 1.54 % Semantic accuracy: 2.13 % Syntactic accuracy: 1.11 %
-FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 10.88 % Semantic accuracy: 11.18 % Syntactic accuracy: 10.66 %
-FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 14.64 % Semantic accuracy: 15.99 % Syntactic accuracy: 13.68 %
-FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 17.81 % Semantic accuracy: 21.29 % Syntactic accuracy: 15.33 %
-FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 7.10 % Semantic accuracy: 8.95 % Syntactic accuracy: 5.77 %
-FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 12.95 % Semantic accuracy: 14.41 % Syntactic accuracy: 11.90 %
-FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 15.92 % Semantic accuracy: 18.68 % Syntactic accuracy: 13.96 %
-FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 14.35 % Semantic accuracy: 17.14 % Syntactic accuracy: 12.37 %
-FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 9.26 % Semantic accuracy: 12.30 % Syntactic accuracy: 7.10 %
-FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 12.34 % Semantic accuracy: 14.16 % Syntactic accuracy: 11.05 %
-FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 13.73 % Semantic accuracy: 15.94 % Syntactic accuracy: 12.15 %
-FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 11.95 % Semantic accuracy: 13.47 % Syntactic accuracy: 10.86 %
-FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 10.02 % Semantic accuracy: 12.06 % Syntactic accuracy: 8.57 %
-FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 10.53 % Semantic accuracy: 11.38 % Syntactic accuracy: 9.93 %
-FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 11.48 % Semantic accuracy: 13.21 % Syntactic accuracy: 10.25 %
-FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 10.52 % Semantic accuracy: 10.64 % Syntactic accuracy: 10.43 %
-FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 9.23 % Semantic accuracy: 11.10 % Syntactic accuracy: 7.90 %
-FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 9.01 % Semantic accuracy: 9.29 % Syntactic accuracy: 8.82 %
-FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 9.89 % Semantic accuracy: 10.32 % Syntactic accuracy: 9.59 %
-FINAL_vectors_datasettext8_epochs25_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 18.10 % Semantic accuracy: 21.57 % Syntactic accuracy: 15.63 %
-FINAL_vectors_datasettext8_epochs25_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 32.98 % Semantic accuracy: 46.01 % Syntactic accuracy: 23.71 %
-FINAL_vectors_datasettext8_epochs25_size1000_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 24.58 % Semantic accuracy: 33.89 % Syntactic accuracy: 17.95 %
-FINAL_vectors_datasettext8_epochs25_size1000_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 20.21 % Semantic accuracy: 25.32 % Syntactic accuracy: 16.56 %
-FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 27.48 % Semantic accuracy: 29.83 % Syntactic accuracy: 25.80 %
-FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 6.56 % Semantic accuracy: 7.92 % Syntactic accuracy: 5.59 %
-FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 15.48 % Semantic accuracy: 18.19 % Syntactic accuracy: 13.55 %
-FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 19.42 % Semantic accuracy: 21.80 % Syntactic accuracy: 17.72 %
-FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 26.54 % Semantic accuracy: 29.19 % Syntactic accuracy: 24.65 %
-FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 17.80 % Semantic accuracy: 21.68 % Syntactic accuracy: 15.04 %
-FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 25.37 % Semantic accuracy: 32.78 % Syntactic accuracy: 20.08 %
-FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 25.41 % Semantic accuracy: 30.07 % Syntactic accuracy: 22.09 %
-FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 23.59 % Semantic accuracy: 26.89 % Syntactic accuracy: 21.25 %
-FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 31.51 % Semantic accuracy: 41.40 % Syntactic accuracy: 24.47 %
-FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 29.16 % Semantic accuracy: 38.96 % Syntactic accuracy: 22.18 %
-FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 26.56 % Semantic accuracy: 33.01 % Syntactic accuracy: 21.96 %
-FINAL_vectors_datasettext8_epochs25_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 21.71 % Semantic accuracy: 25.86 % Syntactic accuracy: 18.76 %
-FINAL_vectors_datasettext8_epochs25_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 32.51 % Semantic accuracy: 44.39 % Syntactic accuracy: 24.05 %
-FINAL_vectors_datasettext8_epochs25_size600_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 28.15 % Semantic accuracy: 37.47 % Syntactic accuracy: 21.51 %
-FINAL_vectors_datasettext8_epochs25_size600_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 25.51 % Semantic accuracy: 32.65 % Syntactic accuracy: 20.42 %
-FINAL_vectors_datasettext8_epochs25_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 18.78 % Semantic accuracy: 21.68 % Syntactic accuracy: 16.71 %
-FINAL_vectors_datasettext8_epochs25_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 31.81 % Semantic accuracy: 44.90 % Syntactic accuracy: 22.49 %
-FINAL_vectors_datasettext8_epochs25_size800_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 25.32 % Semantic accuracy: 35.83 % Syntactic accuracy: 17.83 %
-FINAL_vectors_datasettext8_epochs25_size800_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 22.65 % Semantic accuracy: 29.52 % Syntactic accuracy: 17.75 %
-FINAL_vectors_datasettext8_epochs50_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 13.43 % Semantic accuracy: 13.93 % Syntactic accuracy: 13.07 %
-FINAL_vectors_datasettext8_epochs50_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 32.59 % Semantic accuracy: 44.54 % Syntactic accuracy: 24.07 %
-FINAL_vectors_datasettext8_epochs50_size1000_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 21.27 % Semantic accuracy: 29.18 % Syntactic accuracy: 15.63 %
-FINAL_vectors_datasettext8_epochs50_size1000_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 17.36 % Semantic accuracy: 21.51 % Syntactic accuracy: 14.41 %
-FINAL_vectors_datasettext8_epochs50_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 24.82 % Semantic accuracy: 25.00 % Syntactic accuracy: 24.70 %
-FINAL_vectors_datasettext8_epochs50_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 7.20 % Semantic accuracy: 8.41 % Syntactic accuracy: 6.33 %
-FINAL_vectors_datasettext8_epochs50_size100_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 16.41 % Semantic accuracy: 18.80 % Syntactic accuracy: 14.72 %
-FINAL_vectors_datasettext8_epochs50_size100_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 18.22 % Semantic accuracy: 20.06 % Syntactic accuracy: 16.91 %
-FINAL_vectors_datasettext8_epochs50_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 23.67 % Semantic accuracy: 24.02 % Syntactic accuracy: 23.43 %
-FINAL_vectors_datasettext8_epochs50_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 19.08 % Semantic accuracy: 25.26 % Syntactic accuracy: 14.68 %
-FINAL_vectors_datasettext8_epochs50_size200_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 25.10 % Semantic accuracy: 32.96 % Syntactic accuracy: 19.50 %
-FINAL_vectors_datasettext8_epochs50_size200_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 24.98 % Semantic accuracy: 29.19 % Syntactic accuracy: 21.98 %
-FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 19.57 % Semantic accuracy: 19.69 % Syntactic accuracy: 19.49 %
-FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 31.73 % Semantic accuracy: 44.67 % Syntactic accuracy: 22.51 %
-FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 26.98 % Semantic accuracy: 34.75 % Syntactic accuracy: 21.45 %
-FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 26.27 % Semantic accuracy: 33.29 % Syntactic accuracy: 21.27 %
-FINAL_vectors_datasettext8_epochs50_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 17.06 % Semantic accuracy: 18.89 % Syntactic accuracy: 15.76 %
-FINAL_vectors_datasettext8_epochs50_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 35.03 % Semantic accuracy: 48.07 % Syntactic accuracy: 25.73 %
-FINAL_vectors_datasettext8_epochs50_size600_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 26.60 % Semantic accuracy: 35.26 % Syntactic accuracy: 20.43 %
-FINAL_vectors_datasettext8_epochs50_size600_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 22.48 % Semantic accuracy: 27.62 % Syntactic accuracy: 18.82 %
-FINAL_vectors_datasettext8_epochs50_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 14.76 % Semantic accuracy: 15.49 % Syntactic accuracy: 14.23 %
-FINAL_vectors_datasettext8_epochs50_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 34.33 % Semantic accuracy: 48.49 % Syntactic accuracy: 24.24 %
-FINAL_vectors_datasettext8_epochs50_size800_neg24_window10_sample1e-4_Q2_mincount5.bin_evaluated_output Total accuracy: 23.35 % Semantic accuracy: 32.08 % Syntactic accuracy: 17.14 %
-FINAL_vectors_datasettext8_epochs50_size800_neg24_window10_sample1e-4_Q4_mincount5.bin_evaluated_output Total accuracy: 20.16 % Semantic accuracy: 24.82 % Syntactic accuracy: 16.84 %
+FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 21.64 % Semantic accuracy: 24.92 % Syntactic accuracy: 19.30 %
+FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 30.66 % Semantic accuracy: 41.05 % Syntactic accuracy: 23.25 %
+FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 31.31 % Semantic accuracy: 35.46 % Syntactic accuracy: 28.35 %
+FINAL_vectors_datasettext8_epochs10_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 5.90 % Semantic accuracy: 6.05 % Syntactic accuracy: 5.79 %
+FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 32.59 % Semantic accuracy: 38.03 % Syntactic accuracy: 28.71 %
+FINAL_vectors_datasettext8_epochs10_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 17.55 % Semantic accuracy: 20.54 % Syntactic accuracy: 15.42 %
+FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 30.47 % Semantic accuracy: 37.85 % Syntactic accuracy: 25.20 %
+FINAL_vectors_datasettext8_epochs10_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 27.57 % Semantic accuracy: 36.06 % Syntactic accuracy: 21.53 %
+FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 27.42 % Semantic accuracy: 33.47 % Syntactic accuracy: 23.11 %
+FINAL_vectors_datasettext8_epochs10_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 31.68 % Semantic accuracy: 43.92 % Syntactic accuracy: 22.97 %
+FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 23.88 % Semantic accuracy: 28.16 % Syntactic accuracy: 20.83 %
+FINAL_vectors_datasettext8_epochs10_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 30.94 % Semantic accuracy: 41.22 % Syntactic accuracy: 23.62 %
+FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 7.80 % Semantic accuracy: 7.34 % Syntactic accuracy: 8.13 %
+FINAL_vectors_datasettext8_epochs1_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 8.35 % Semantic accuracy: 9.55 % Syntactic accuracy: 7.50 %
+FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 17.84 % Semantic accuracy: 19.44 % Syntactic accuracy: 16.70 %
+FINAL_vectors_datasettext8_epochs1_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 1.49 % Semantic accuracy: 2.22 % Syntactic accuracy: 0.96 %
+FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 18.01 % Semantic accuracy: 21.45 % Syntactic accuracy: 15.56 %
+FINAL_vectors_datasettext8_epochs1_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 6.74 % Semantic accuracy: 7.69 % Syntactic accuracy: 6.06 %
+FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 14.69 % Semantic accuracy: 17.44 % Syntactic accuracy: 12.73 %
+FINAL_vectors_datasettext8_epochs1_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 9.41 % Semantic accuracy: 11.74 % Syntactic accuracy: 7.75 %
+FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 11.80 % Semantic accuracy: 13.24 % Syntactic accuracy: 10.78 %
+FINAL_vectors_datasettext8_epochs1_size600_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 11.16 % Semantic accuracy: 14.62 % Syntactic accuracy: 8.69 %
+FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 10.51 % Semantic accuracy: 10.84 % Syntactic accuracy: 10.28 %
+FINAL_vectors_datasettext8_epochs1_size800_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 9.42 % Semantic accuracy: 11.73 % Syntactic accuracy: 7.78 %
+FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 26.54 % Semantic accuracy: 28.44 % Syntactic accuracy: 25.19 %
+FINAL_vectors_datasettext8_epochs25_size100_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 6.58 % Semantic accuracy: 7.28 % Syntactic accuracy: 6.08 %
+FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 26.50 % Semantic accuracy: 27.54 % Syntactic accuracy: 25.77 %
+FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 20.63 % Semantic accuracy: 24.12 % Syntactic accuracy: 18.13 %
+FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 23.66 % Semantic accuracy: 27.60 % Syntactic accuracy: 20.85 %
+FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 29.23 % Semantic accuracy: 38.08 % Syntactic accuracy: 22.92 %
 """
 
 def extract_name_fields(name):
@@ -257,7 +125,7 @@ def plot_accuracy_vs_dimension(points_loss, points_acc, n_epochs_ran, keepqs=Non
         for h,l in zip(*ax.get_legend_handles_labels()):
             handles.append(h)
             labels.append(l)
-    plt.legend(handles,labels)
+    plt.legend(handles,labels, loc="best")
 
     ax1.grid()
     #ax1.set_title("Accuracy/Loss vs Dimension, 100MB of Wikipedia, %d epochs trained" % n_epochs_ran)
@@ -301,7 +169,7 @@ def plot_accuracy_vs_epochs(points_loss, points_acc, dimension, keepqs=None):
         for h,l in zip(*ax.get_legend_handles_labels()):
             handles.append(h)
             labels.append(l)
-    plt.legend(handles,labels)
+    plt.legend(handles,labels, loc="best")
 
     ax1.grid()
     #ax1.set_title("Accuracy/Loss vs Epochs, 100MB of Wikipedia, Dimension %d" % dimension)
