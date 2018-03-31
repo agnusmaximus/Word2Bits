@@ -40,8 +40,9 @@ FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q0_mincoun
 FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -27615445.026728
 FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -16514659.878059
 FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -24586074.512452
+FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Loss: -15049050.295723
+FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Loss: -24150053.572027
 """
-
 raw_data_acc = """
 FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 21.64 % Semantic accuracy: 24.92 % Syntactic accuracy: 19.30 %
 FINAL_vectors_datasettext8_epochs10_size1000_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 30.66 % Semantic accuracy: 41.05 % Syntactic accuracy: 23.25 %
@@ -73,6 +74,8 @@ FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q0_mincoun
 FINAL_vectors_datasettext8_epochs25_size200_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 20.63 % Semantic accuracy: 24.12 % Syntactic accuracy: 18.13 %
 FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 23.66 % Semantic accuracy: 27.60 % Syntactic accuracy: 20.85 %
 FINAL_vectors_datasettext8_epochs25_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 29.23 % Semantic accuracy: 38.08 % Syntactic accuracy: 22.92 %
+FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q0_mincount5.bin_evaluated_output Total accuracy: 19.03 % Semantic accuracy: 19.39 % Syntactic accuracy: 18.77 %
+FINAL_vectors_datasettext8_epochs50_size400_neg24_window10_sample1e-4_Q1_mincount5.bin_evaluated_output Total accuracy: 30.86 % Semantic accuracy: 42.35 % Syntactic accuracy: 22.68 %
 """
 
 def extract_name_fields(name):
@@ -160,8 +163,8 @@ def plot_accuracy_vs_epochs(points_loss, points_acc, dimension, keepqs=None):
         points_loss = [(d[0][0], d[1]) for d in data_loss]
         points_loss = sorted(points_loss, key=lambda x: x[0])
         ys_loss = [d[1] for d in points_loss]
-        ax1.plot(xs, ys, label="Bits=" + str(q) + " (acc)", marker="o", linewidth=5, markersize=10)
-        ax2.plot(xs, ys_loss, label="Bits=" + str(q) + " (loss)", linestyle=":", marker="o", linewidth=5, markersize=10)
+        ax1.plot(xs, ys, label="bits=" + str(q) + " (acc)", marker="o", linewidth=5, markersize=10)
+        ax2.plot(xs, ys_loss, label="bits=" + str(q) + " (loss)", linestyle=":", marker="o", linewidth=5, markersize=10)
 
     # Merge legend names
     handles,labels = [],[]
