@@ -5,7 +5,7 @@ import re
 
 
 font = {'family' : 'normal',
-        'size'   : 15}
+        'size'   : 17}
 matplotlib.rc('font', **font)
 matplotlib.rcParams['axes.color_cycle'] = ['r', 'b', 'g']
 
