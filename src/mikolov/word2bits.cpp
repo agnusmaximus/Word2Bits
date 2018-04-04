@@ -22,6 +22,7 @@
 #include <float.h>
 #include <math.h>
 #include <pthread.h>
+#include <numa.h>
 
 using namespace std;
 typedef numeric_limits< double > dbl;
@@ -63,6 +64,13 @@ int *table;
 ///////////////////////////////////////////
 //              Word2Bits                //
 ///////////////////////////////////////////
+
+void pin_to_core(size_t core) {
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(core, &cpuset);
+  pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+}
 
 real sigmoid(real val) {
   if (val > MAX_EXP) return 1;
@@ -361,6 +369,7 @@ void InitNet() {
 }
 
 void *TrainModelThread(void *id) {
+  pin_to_core((size_t)id);
   long long a, b, c, d, cw, word, last_word, sentence_length = 0, sentence_position = 0;
   long long word_count = 0, last_word_count = 0, sen[MAX_SENTENCE_LENGTH + 1];
   // local_iter = 1 to save the model every epoch
