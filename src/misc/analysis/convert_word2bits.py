@@ -1,5 +1,5 @@
 # Ttakes w2v bin format and converts it to glove format.
-# Usage: python convert_word2bits.py input_binary_wordvecs output_file [threshold_value]
+# Usage: python convert_word2bits.py input_binary_wordvecs output_file [threshold_value] [input_format]
 from __future__ import print_function
 import sys
 import random
@@ -15,7 +15,7 @@ def threshold_value(x):
     sign = -1 if x < 0 else 1
     x *= sign    
     if threshold == 1:
-        return sign / 3
+        return sign / float(3)
     elif threshold == 2:
         if x >= 0 and x <= .5:
             retval = .25
@@ -34,7 +34,7 @@ def load_vec(fname):
         for i in range(n_words):
             if i % 10000 == 0:
                 print("%d of %d" % (i, n_words))
-            line = f.readline().split(" ")
+            line = f.readline().strip().split(" ")
             word, vector = line[0], [float(x) for x in line[1:]]
             word_vecs[word] = vector
         assert len(word_vecs.keys()) == n_words
@@ -116,7 +116,12 @@ if __name__=="__main__":
     assert len(sys.argv) >= 3
     
     threshold = int(sys.argv[3]) if len(sys.argv) >= 4 else 0
-    word_vecs = load_bin_vec(sys.argv[1])
+    # 0 for binary, 1 for text
+    input_format = int(sys.argv[4]) if len(sys.argv) >= 5 else 0
+    if input_format == 0:
+        word_vecs = load_bin_vec(sys.argv[1])
+    else:
+        word_vecs = load_vec(sys.argv[1])
     
     if threshold != 0:
         print("Thresholding: %d" % threshold)
