@@ -42,7 +42,7 @@ FULLWIKI_MIKOLOV_SAVE_FILE=$(FULLWIKISAVEDIR)/mikolov_vectors.bin
 NEGATIVE_SIZE=12
 MIN_COUNT=5
 MIN_COUNT_FULL=5
-REG=.005
+REG=.00005
 
 # QUANTIZATION VARIABLES
 BITLEVEL=0
@@ -68,10 +68,10 @@ benchmark-mikolov:
 	$(CC_MIKOLOV) $(MIKOLOV_DIR)/word2bits.cpp $(CFLAGS) -o $(BUILDDIR)/word2bits_mikolov
 
 	@echo Running Mikolov...
-	$(BUILDDIR)/word2bits_mikolov -min-count $(MIN_COUNT) -bitlevel ${BITLEVEL} -train $(TEXT8_PATH) -output $(MIKOLOV_SAVE_FILE)_text8_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT} -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER) -reg $(REG)
+	$(BUILDDIR)/word2bits_mikolov -min-count $(MIN_COUNT) -bitlevel ${BITLEVEL} -train $(TEXT8_PATH) -output $(MIKOLOV_SAVE_FILE)_text8_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_reg${REG}_maxiter${MAX_ITER}_mincount${MIN_COUNT} -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER) -reg $(REG)
 
 	@echo Evaluating Mikolov
-	$(BUILDDIR)/compute_accuracy_mikolov $(MIKOLOV_SAVE_FILE)_text8_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT} < data/google_analogies_test_set/questions-words.txt
+	$(BUILDDIR)/compute_accuracy_mikolov $(MIKOLOV_SAVE_FILE)_text8_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_reg${REG}_maxiter${MAX_ITER}_mincount${MIN_COUNT} < data/google_analogies_test_set/questions-words.txt
 benchmark-mikolov-large:
 	@echo Building Mikolov...
 	$(CC_MIKOLOV) -w  $(MIKOLOV_DIR)/compute-accuracy.c $(CFLAGS) -o $(BUILDDIR)/compute_accuracy_mikolov
@@ -81,11 +81,16 @@ benchmark-mikolov-large:
 	$(eval FILEOUT := /lfs/1/maxlam/w2b_logs/fullwiki_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL}_out)
 	echo "Writing to " ${FILEOUT}
 	rm -f ${FILEOUT}
-	$(BUILDDIR)/word2bits_mikolov -min-count $(MIN_COUNT_FULL) -bitlevel ${BITLEVEL} -train $(FULL_WIKI_PATH) -output $(FULLWIKI_MIKOLOV_SAVE_FILE)_fullwiki_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER) -reg $(REG) >> ${FILEOUT} 
+	$(BUILDDIR)/word2bits_mikolov -min-count $(MIN_COUNT_FULL) -bitlevel ${BITLEVEL} -train $(FULL_WIKI_PATH) -output $(FULLWIKI_MIKOLOV_SAVE_FILE)_fullwiki_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_reg${REG}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} -size $(VECTOR_SIZE) -window $(WINDOW_SIZE) -negative $(NEGATIVE_SIZE) -sample 1e-4 -threads $(NUM_THREADS) -binary 1 -iter $(MAX_ITER) -reg $(REG) >> ${FILEOUT} 
 
 	@echo Evaluating Mikolov
-	$(BUILDDIR)/compute_accuracy_mikolov $(FULLWIKI_MIKOLOV_SAVE_FILE)_fullwiki_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} < data/google_analogies_test_set/questions-words.txt >> ${FILEOUT}
+	$(BUILDDIR)/compute_accuracy_mikolov $(FULLWIKI_MIKOLOV_SAVE_FILE)_fullwiki_bitlevel${BITLEVEL}_size${VECTOR_SIZE}_window${WINDOW_SIZE}_neg${NEGATIVE_SIZE}_reg${REG}_maxiter${MAX_ITER}_mincount${MIN_COUNT_FULL} < data/google_analogies_test_set/questions-words.txt >> ${FILEOUT}
+
+compile:
+	$(CC_MIKOLOV) $(MIKOLOV_DIR)/word2bits.cpp $(CFLAGS) -o w2b
+
 clean:
+	rm -f w2b
 	rm -f $(BUILDDIR)/word2bits_mikolov_r
 	rm -f $(BUILDDIR)/word2bits_mikolov
 	rm -f $(BUILDDIR)/compute_accuracy_mikolov

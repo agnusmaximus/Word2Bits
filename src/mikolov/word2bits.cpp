@@ -22,6 +22,7 @@
 #include <float.h>
 #include <math.h>
 #include <pthread.h>
+#include <numa.h>
 
 using namespace std;
 typedef numeric_limits< double > dbl;
@@ -64,7 +65,16 @@ int *table;
 //              Word2Bits                //
 ///////////////////////////////////////////
 
+void pin_to_core(size_t core) {
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(core, &cpuset);
+  pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+}
+
 real sigmoid(real val) {
+  if (val > MAX_EXP) return 1;
+  if (val < -MAX_EXP) return 1e-9;
   return 1 / (1 + (real)exp(-val));
 }
 
@@ -359,6 +369,7 @@ void InitNet() {
 }
 
 void *TrainModelThread(void *id) {
+  pin_to_core((size_t)id);
   long long a, b, c, d, cw, word, last_word, sentence_length = 0, sentence_position = 0;
   long long word_count = 0, last_word_count = 0, sen[MAX_SENTENCE_LENGTH + 1];
   // local_iter = 1 to save the model every epoch
@@ -439,8 +450,8 @@ void *TrainModelThread(void *id) {
 	  local_reg_loss += cur_val * cur_val;
 	}
 	local_reg_loss = reg * local_reg_loss;
-	loss += local_reg_loss;
-	total_loss += local_reg_loss;
+	loss += -local_reg_loss;
+	total_loss += -local_reg_loss;
 	cw++;
       }
     if (cw) {
@@ -477,8 +488,8 @@ void *TrainModelThread(void *id) {
 	////////////////////
 	real dot_product = f * pow(-1, 1-label);
 	real local_loss = log(sigmoid(dot_product));
-	loss += local_loss + local_reg_loss;
-	total_loss += local_loss + local_reg_loss;
+	loss += local_loss - local_reg_loss;
+	total_loss += local_loss - local_reg_loss;
 	/////////////////////
 	
 	for (c = 0; c < layer1_size; c++) {
@@ -537,8 +548,8 @@ void TrainModel() {
     printf("Epoch Loss: %lf\n", total_loss_epoch);
     char output_file_cur_iter[MAX_STRING] = {0};
     sprintf(output_file_cur_iter, "%s_epoch%d", output_file, iteration);
-    fo = fopen(output_file_cur_iter, "wb");
     if (classes == 0 && save_every_epoch) {
+      fo = fopen(output_file_cur_iter, "wb");
       // Save the word vectors
       fprintf(fo, "%lld %lld\n", vocab_size, layer1_size);
       for (a = 0; a < vocab_size; a++) {
@@ -551,8 +562,8 @@ void TrainModel() {
 	}
 	fprintf(fo, "\n");
       }
+      fclose(fo);
     }
-    fclose(fo);
   }
 
   // Write an extra file
