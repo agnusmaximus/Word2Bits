@@ -8,6 +8,12 @@ import numpy as np
 
 threshold = 0
 
+def threshold_1bit_best(x, abs_mean):
+    if x < 0:
+        return -abs_mean
+    else:
+        return abs_mean
+
 def threshold_value(x):
     if threshold == 0:
         return x
@@ -25,19 +31,21 @@ def threshold_value(x):
         assert(0)
     return sign * retval
 
-def load_vec(fname):
+def load_vec(fname, limit=1000000000):
     word_vecs = {}
     print("Loading vectors from %s" % fname)
     with open(fname, "r") as f:
         n_words, dimension = [int(x) for x in f.readline().split(" ")]
         print(n_words, dimension)
         for i in range(n_words):
+            if i >= limit:
+                break
             if i % 10000 == 0:
                 print("%d of %d" % (i, n_words))
             line = f.readline().strip().split(" ")
             word, vector = line[0], [float(x) for x in line[1:]]
             word_vecs[word] = vector
-        assert len(word_vecs.keys()) == n_words
+        #assert len(word_vecs.keys()) == n_words
     return word_vecs
     
 def load_bin_vec(fname):
@@ -124,8 +132,13 @@ if __name__=="__main__":
         word_vecs = load_vec(sys.argv[1])
     
     if threshold != 0:
-        print("Thresholding: %d" % threshold)
-        threshold_function = np.vectorize(threshold_value)
+        if threshold == -1:
+            print("Best 1 bit thresholding")
+            cutoff = np.mean(np.abs(np.stack(word_vecs.values()).flatten()))
+            threshold_function = np.vectorize(lambda x: threshold_1bit_best(x, cutoff))
+        else:
+            print("Thresholding: %d" % threshold)
+            threshold_function = np.vectorize(threshold_value)
         for i, (k,vec) in enumerate(word_vecs.items()):
             if i % 100000 == 0:
                 print("%d of %d" % (i, len(word_vecs)))
