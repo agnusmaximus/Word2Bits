@@ -9,6 +9,7 @@ from wordemb2quant_v5_temp import *
 
 threshold = 0
 
+
 def threshold_1bit_best(x, abs_mean):
     if x < 0:
         return -abs_mean
@@ -32,7 +33,7 @@ def threshold_value(x):
         assert(0)
     return sign * retval
 
-def load_vec(fname, limit=10000000000000):
+def load_vec(fname, limit=10000):
     word_vecs = {}
     print("Loading vectors from %s" % fname)
     with open(fname, "r") as f:
@@ -138,6 +139,25 @@ if __name__=="__main__":
     else:
         word_vecs = load_vec(sys.argv[1])
 
+    if method == "prune":
+        # python convert_word2bits.py input_binary_wordvecs output_file prune 90 1
+        # Prune 90% of the weights
+        print("Pruning %d of weights" % (threshold))
+            
+        # First sort all of the weights by absolute value
+        values = np.abs(np.stack(word_vecs.values()).flatten())
+        percentile = np.percentile(values, threshold)
+        print(percentile)
+
+        #sparsify_function = np.vectorize(lambda xxx : 0 if np.abs(xxx) < percentile else xxx)
+        sparsify_function = lambda xxx : 0 if np.abs(x) < percentile else xxx
+        for i, (k,vec) in enumerate(word_vecs.items()):
+            if i % 100000 == 0:
+                print("Pruning %d of %d" % (i, len(word_vecs)))
+            v = [sparsify_function(x) for x in vec]
+            word_vecs[k] = v
+            #word_vecs[k] = sparsify_function(vec)
+        
     if method == "vp":        
         # python convert_word2bits.py input_binary_wordvecs output_file vp 2 1
         # 2 bits per entry for vp ^
