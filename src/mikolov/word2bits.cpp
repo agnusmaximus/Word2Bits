@@ -78,15 +78,6 @@ real sigmoid(real val) {
   return 1 / (1 + (real)exp(-val));
 }
 
-void snap(int bitlevel, real *val) {
-  if (bitlevel == 1) {
-    if (*val >= 1/(float)3)
-      *val = 1/(float)3;
-    if (*val <= -1/(float)3)
-      *val = -1/(float)3;
-  }
-}
-
 real quantize(real num, int bitlevel) {
 
   if (bitlevel == 0) {
@@ -506,7 +497,6 @@ void *TrainModelThread(void *id) {
 	}
 	for (c = 0; c < layer1_size; c++) {
 	  v[c + l2] += g * context_avg[c] - 2*alpha*reg*v[c + l2];
-	  snap(bitlevel, &v[c+l2]);
 	}
       }
       // hidden -> in
@@ -518,7 +508,6 @@ void *TrainModelThread(void *id) {
 	  if (last_word == -1) continue;
 	  for (c = 0; c < layer1_size; c++) {
 	    u[c + last_word * layer1_size] += context_avge[c] - 2*alpha*reg*u[c+last_word*layer1_size];
-	    snap(bitlevel, &u[c+last_word*layer1_size]);
 	  }
 	}
     }
@@ -566,7 +555,7 @@ void TrainModel() {
       for (a = 0; a < vocab_size; a++) {
 	fprintf(fo, "%s ", vocab[a].word);
 	for (b = 0; b < layer1_size; b++) {
-	  float avg = quantize(u[a*layer1_size+b], bitlevel) + quantize(v[a*layer1_size+b], bitlevel);
+	  float avg = quantize(u[a*layer1_size+b] + v[a*layer1_size+b], bitlevel);
 	  if (binary) fwrite(&avg, sizeof(float), 1, fo);
 	  else fprintf(fo, "%lf ", avg);
 	}
@@ -584,7 +573,8 @@ void TrainModel() {
     for (a = 0; a < vocab_size; a++) {
       fprintf(fo, "%s ", vocab[a].word);
       for (b = 0; b < layer1_size; b++) {
-	float avg = quantize(u[a*layer1_size+b], bitlevel) + quantize(v[a*layer1_size+b], bitlevel);
+	//float avg = quantize(u[a*layer1_size+b], bitlevel) + quantize(v[a*layer1_size+b], bitlevel);
+	float avg = quantize(u[a*layer1_size+b] + v[a*layer1_size+b], bitlevel);
 	if (binary) fwrite(&avg, sizeof(float), 1, fo);
 	else fprintf(fo, "%lf ", avg);
       }
