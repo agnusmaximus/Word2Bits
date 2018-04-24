@@ -16,20 +16,18 @@ max_vec_len = 500
 
 
 def columnwise_KM(nc,mi,inits,j,emb):
+    nc = int(nc)
     kmeans = KMeans(n_clusters=nc,max_iter=mi,n_init=inits,n_jobs=1).fit(emb[:,j].reshape(-1,1))
     return np.concatenate(kmeans.cluster_centers_[kmeans.labels_])
 
 
 def quantize(U,S,bits_per_entry,n_cores):
     N = len(S)
-    bit_allot = clever_round(compute_bit_allot(singvals,bits_per_entry,0.1))
+    bit_allot = clever_round(compute_bit_allot(S,bits_per_entry,0.1))
     with Parallel(n_jobs=n_cores) as parafor:
         U_q = parafor(delayed(columnwise_KM)(2**bit_allot[j],200,2,j,U) for j in range(0,N))
         U_q = np.transpose(U_q)
-        return U_q,U_q*S
-
-
-
+    return U_q,U_q*S
 
 def columnwise_KM_preloaded(emb_KM,bits_per_entry, column_num):
     #assumes the emb_KM files are loaded!!!!!!!!!!!!

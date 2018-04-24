@@ -1,10 +1,11 @@
 # Ttakes w2v bin format and converts it to glove format.
-# Usage: python convert_word2bits.py input_binary_wordvecs output_file [threshold_value] [input_format]
+# Usage: python convert_word2bits.py input_binary_wordvecs output_file [Method] [threshold_value] [input_format]
 from __future__ import print_function
 import sys
 import random
 import math
 import numpy as np
+from wordemb2quant_v5_temp import *
 
 threshold = 0
 
@@ -31,7 +32,7 @@ def threshold_value(x):
         assert(0)
     return sign * retval
 
-def load_vec(fname, limit=1000000000):
+def load_vec(fname, limit=10000000000000):
     word_vecs = {}
     print("Loading vectors from %s" % fname)
     with open(fname, "r") as f:
@@ -120,29 +121,55 @@ def count(x):
 
 
 if __name__=="__main__":
-    
+    # Usage: python convert_word2bits.py input_binary_wordvecs output_file [Method] [threshold_value] [input_format]
     assert len(sys.argv) >= 3
+
+    # Method is either "vp" for variable precision or "thresh" for threshold or "bestthresh" for best thresholding
+    method = sys.argv[3] if len(sys.argv) >= 4 else "thresh"
+
+    # If Method is "vp", threshold is the number of bits per element to use, otherwise
+    # if method is "thresh", threshold is 1 or 2 for 1/2 bit quantization.
+    threshold = float(sys.argv[4]) if len(sys.argv) >= 5 else 0
     
-    threshold = int(sys.argv[3]) if len(sys.argv) >= 4 else 0
     # 0 for binary, 1 for text
     input_format = int(sys.argv[4]) if len(sys.argv) >= 5 else 0
     if input_format == 0:
         word_vecs = load_bin_vec(sys.argv[1])
     else:
         word_vecs = load_vec(sys.argv[1])
-    
-    if threshold != 0:
-        if threshold == -1:
-            print("Best 1 bit thresholding")
-            cutoff = np.mean(np.abs(np.stack(word_vecs.values()).flatten()))
-            threshold_function = np.vectorize(lambda x: threshold_1bit_best(x, cutoff))
-        else:
+
+    if method == "vp":        
+        # python convert_word2bits.py input_binary_wordvecs output_file vp 2 1
+        # 2 bits per entry for vp ^
+        print("Variable precision with %f bits" % threshold)
+
+        # Compute SVD on word_vecs
+        word_vec_matrix = np.stack(word_vecs.values())
+        print("Word vector matrix shape:", word_vec_matrix.shape)
+        u,s,v = np.linalg.svd(word_vec_matrix, full_matrices=False)
+
+        print("Quantizing...")
+        _, quantized_vectors = quantize(u, s, threshold, 50)
+        
+        # Save vectors to output
+        word_vecs = {k:quantized_vectors[i,:] for i,k in enumerate(word_vecs.keys())}
+        
+    if method == "bestthresh":
+        # python convert_word2bits.py input_binary_wordvecs output_file bestthresh -1 1
+        print("Best 1 bit thresholding")
+        cutoff = np.mean(np.abs(np.stack(word_vecs.values()).flatten()))
+        threshold_function = np.vectorize(lambda x: threshold_1bit_best(x, cutoff))
+    if method == "thresh":
+        if threshold != 0:
+            assert(threshold == 1 or threshold == 2)
+            # python convert_word2bits.py input_binary_wordvecs output_file thresh 1 1
             print("Thresholding: %d" % threshold)
             threshold_function = np.vectorize(threshold_value)
-        for i, (k,vec) in enumerate(word_vecs.items()):
-            if i % 100000 == 0:
-                print("%d of %d" % (i, len(word_vecs)))
-            word_vecs[k] = threshold_function(vec)
-            
+            for i, (k,vec) in enumerate(word_vecs.items()):
+                if i % 100000 == 0:
+                    print("%d of %d" % (i, len(word_vecs)))
+                word_vecs[k] = threshold_function(vec)
+
+    print("Saving vectors to output...")                
     write_bin_vec_text(word_vecs, sys.argv[2])
 
