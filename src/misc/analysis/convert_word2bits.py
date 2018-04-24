@@ -150,13 +150,12 @@ if __name__=="__main__":
         print(percentile)
 
         #sparsify_function = np.vectorize(lambda xxx : 0 if np.abs(xxx) < percentile else xxx)
-        sparsify_function = lambda xxx : 0 if np.abs(x) < percentile else xxx
+        sparsify_function = lambda xxx : 0 if abs(xxx) < percentile else xxx
         for i, (k,vec) in enumerate(word_vecs.items()):
-            if i % 100000 == 0:
+            if i % 10000 == 0:
                 print("Pruning %d of %d" % (i, len(word_vecs)))
-            v = [sparsify_function(x) for x in vec]
-            word_vecs[k] = v
-            #word_vecs[k] = sparsify_function(vec)
+            for j in range(len(vec)):
+                word_vecs[k][j] = sparsify_function(word_vecs[k][j])
         
     if method == "vp":        
         # python convert_word2bits.py input_binary_wordvecs output_file vp 2 1
