@@ -58,9 +58,10 @@ def get_available_targets_intrinsic(targets, override_num_tasks=None):
 def run_intrinsic_task_on_target(target, task, run_single_emb_script, preprocess_dir, output_dir):
 
     word_vectors_path = task["path"]
-    preprocess_command, new_path = (None,None) if "preprocess" not in task else task["preprocess"](word_vectors_path, preprocess_dir)
-    if new_path is not None:
-        word_vectors_path = new_path
+    if "preprocess" in task and task["preprocess"] is not None:
+        preprocess_command, word_vectors_path = task["preprocess"](word_vectors_path, preprocess_dir)
+    else:
+        preprocess_command = "echo 'No preprocess'"
 
     emb_script_location = "/".join(run_single_emb_script.split("/")[:-1])
 
@@ -100,7 +101,7 @@ if __name__=="__main__":
             print("Available:", available_targets)
             if len(available_targets) != 0:
                 break;
-            time.sleep(10) # replace with PAUSE_TIME
+            time.sleep(PAUSE_TIME)
 
         target = available_targets[0]
         run_intrinsic_task_on_target(target, task, run_single_emb_script, preprocessed_vectors_directory, intrinsic_outputlog_directory)
