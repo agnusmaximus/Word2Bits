@@ -100,7 +100,7 @@ if __name__=="__main__":
             available_targets = get_available_targets_intrinsic(targets)
             print("Available:", available_targets)
             if len(available_targets) != 0:
-                break;
+                break
             time.sleep(PAUSE_TIME)
 
         target = available_targets[0]
@@ -112,5 +112,6 @@ if __name__=="__main__":
         available_targets = get_available_targets_intrinsic(targets, override_num_tasks=1)
         print("Waiting for finish...")
         print(available_targets)
+        time.sleep(PAUSE_TIME)
         
         
