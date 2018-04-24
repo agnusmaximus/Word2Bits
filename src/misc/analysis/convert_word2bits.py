@@ -33,7 +33,7 @@ def threshold_value(x):
         assert(0)
     return sign * retval
 
-def load_vec(fname, limit=10000):
+def load_vec(fname, limit=100000000000000):
     word_vecs = {}
     print("Loading vectors from %s" % fname)
     with open(fname, "r") as f:
