@@ -16,7 +16,7 @@ import commands
 global verbosity
 
 # Seconds in between checking for available machine
-PAUSE_TIME = 5
+PAUSE_TIME = 300
 
 # Directory structure
 results_directory = os.path.abspath("./automate_results")
@@ -25,16 +25,21 @@ vectors_directory = "%s/output_vectors" % results_directory
 
 # Parameters
 hyperparams = {
-    "epochs":[1,10,25],
-    "bitlevel_or_regs":[0,1,2,"reg_.001"],
-    "dimensions":[200,400,800,1000],
-    "window_neg":[(2,5),(10,12),(5,2)],
-    #"corpus":["/dfs/scratch0/maxlam/wiki.en.txt"],
-    "corpus":["/dfs/scratch0/maxlam/text8"],
+    #"epochs":[1,10,25],
+    #"epochs":[25],
+    "epochs":[10],
+    #"bitlevel_or_regs":[0,1,2,"reg_.001"],
+    "bitlevel_or_regs":["reg_.0005"],
+    #"dimensions":[200,400,800,1000],
+    "dimensions":[400],
+    #"window_neg":[(2,5),(10,12),(5,2)],
+    "window_neg":[(10,12)],
+    "corpus":["/dfs/scratch0/maxlam/wiki.en.txt"],
+    #"corpus":["/dfs/scratch0/maxlam/text8"],
     "min_count":[5],
     "subsample":[1e-4],
     "output_as_binary":[0],
-    "threads":[50]
+    "threads":[35]
 }
 hyperparam_keys = ["epochs",
                    "bitlevel_or_regs",
@@ -187,6 +192,7 @@ if __name__=="__main__":
     # python automate/automate_training.py dawn16.stanford.edu,dawn9.stanford.edu maxlam
     print("Usage: python automate_training.py host1,host2,..hostn username private_key_path [verbosity]")
     print("Automating training...")
+    
     hosts = sys.argv[1].split(",")
     username = sys.argv[2]
     if len(sys.argv) >= 4:
