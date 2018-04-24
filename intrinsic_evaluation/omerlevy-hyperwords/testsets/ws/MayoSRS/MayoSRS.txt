@@ -1,0 +1,101 @@
+difficulty walking	antalgic gait	6.69
+rheumatoid nodule	lung nodule	2.38
+hand splint	splinter hemorrhage	1
+diabetes	polyp	1
+portal hypertension	nevus	1
+congestive heart failure	portal hypertension	1.69
+peripheral edema	pulmonary edema	3.92
+kidney stone	ureteral obstruction	4.69
+back pain	spinal stenosis	5.31
+osteophyte	heberdens node	4
+rheumatoid arthritis	rheumatoid nodule	7.08
+contraceptive	contraindicated	1
+immunization	immunodeficient	2.15
+myopathy	dermatomyositis	4.46
+HMG Co A reductase inhibitor	hyperlipidemia	2.23
+weakness	neuropathy	4.08
+dyspnea	tachypnea	4.08
+pulmonary embolus	hemoptysis	2.77
+osteoarthritis	bone sclerosis	2.85
+drawer sign	knee pain	3.77
+laxity	Marfan Syndrome	2.08
+trigger point	fibromyalgia	3.54
+morning stiffness	rheumatoid arthriits	5.69
+stroke	hemipareisis	5
+brainstem	cranial nerve	4.23
+swallowing	peristalsis	4.38
+dysphagia	hypomotility	3.77
+T wave	myocaridal infarction	5.23
+cavitation	tuberculosis	4.08
+metastasis	carcinomatosis	8.23
+temporal arteritis	headache	4.69
+Antinuclear antibody (ANA)	autoimmune	5.23
+Raynauds phenomenon	digital ischemia	4.85
+scleroderma	systemic sclerosis	5
+pneumonia	infiltrate	4.85
+ileitis	Crohns Disease	6.85
+paraneoplastic	malignancy	5.31
+Rheumatoid arthritis	joint erosion	6.15
+necrosis	liquefaction	1.92
+diarrhea	colitis	5.54
+dyspepsia	peptic ulcer disease	5.23
+confusion	delusion	6.08
+hallucination	psychotic	6
+stomatitis	mouth ulcer	6.85
+pulmonary embolus	pneumonia	3.23
+rheumatoid arthritis	arthroscopy	3.77
+injection	synovial effusion	3.31
+uveitis	HLA B27	2.23
+vasculitis	thrombus	3
+sepsis	hypotension	1.69
+urticaria	buterfly rash	5.31
+gastrosomy	malnutrition	4.31
+edema	glomerular filtration rate	2.38
+Colonoscopy	polyp	5.46
+cortisone	osteoporosis	2.85
+aortic stenosis	calcification	5.62
+malaria	amebiasis	3.15
+neuropathy	paralysis	2.85
+seizure	headache	3.31
+lymphoid hyperplasia	xerostomia	1
+sarcoidosis	Vitamin D	1.46
+leg ulcer	varicsoe vein	3.92
+walking	stair climbing	4.38
+panniculitis	lipoma	3.15
+arrythmia	mitral valve	3.31
+hemolysis	hemoglobin	5.46
+dysguesia	swallowing	1.92
+dysparunia	ovulation	2.31
+penicillin	allergy	3
+leukemia	stem cell	5.08
+prostate cancer	acid phosphatase	1.69
+meniscus	osteoarthritis	2.62
+sodium	mri	1
+prothombin	syringe	1.77
+multiple myeloma	depression	1.08
+diabetes	rheumatoid nodule	1
+ketoacidosis	lupus	1.23
+tracheal stenosis	colon cancer	1
+sinusitis	sinusoid	2.85
+cryptogenic cirrhosis	gastrin	1
+heart failure	psychosis	1
+rectal polyp	laryngeal cancer	1
+antiphospholipid antibody	acne	1.08
+perseveration	venous stasis ulcer	1.31
+bipolar depression	junctional rhythm	1
+mitral stenosis	peptic ulcer disease	1
+acute respiratory distress syndrome	celluitis	1
+spinal cord compression	wound compress	1
+cervical spinal stenosis	alcoholic cirrhosis	1
+autoimmune hepatitis	premature labor	1
+cerebral aneurysm	pulmonary embolus	1.46
+small cell carcinoma of lung	type 2 diabetes	1
+hemetemesis	xerostomia	1.54
+corneal ulcer	decubitus ulcer	2
+dyspnea	myalgia	1
+chronic obstructive pulmonary disease	haletosis	1.08
+osteoarthritis	nephrolithiasis	1
+medial collateral ligament tear	torsade de pointes	1.08
+pulmonary fibrosis	appendicitis	1
+carpal tunnel syndrome	alveolitis	1
+erythema nodusum	osteoporosis	1.54

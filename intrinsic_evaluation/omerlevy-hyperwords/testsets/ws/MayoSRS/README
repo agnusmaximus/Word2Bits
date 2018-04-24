@@ -1,0 +1,12 @@
+Biomedical term relatedness from Pakhomov et al. "Towards a Framework
+for Developing Semantic Relatedness Reference Standards" (J Biomed
+Inform. 2011). Data from MayoSRS.csv and MiniMayoSRS.csv, available
+from http://rxinformatics.umn.edu/SemanticRelatednessResources.html.
+
+Note for MiniMayoSRS: all words lowercased, relatedness is mean for
+physicians' and coders' values, following McInnes and Pedersen
+"Evaluating semantic similarity and relatedness over the semantic
+grouping of clinical term pairs" (J Biomed Inform. 2015).
+
+TODO: consider separating physicians' and coders' relatedness values
+in MiniMayoSRS.

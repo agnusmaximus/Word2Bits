@@ -14,6 +14,7 @@ import os
 import commands
 
 global verbosity
+verbosity = 0
 
 # Seconds in between checking for available machine
 PAUSE_TIME = 300
@@ -190,7 +191,7 @@ def train_vector_on_target(target, arg_dict, raw_args_list, w2b_path):
 if __name__=="__main__":
 
     # python automate/automate_training.py dawn16.stanford.edu,dawn9.stanford.edu maxlam
-    print("Usage: python automate_training.py host1,host2,..hostn username private_key_path [verbosity]")
+    print("Usage: python automate_training.py host1,host2,..hostn username [verbosity]")
     print("Automating training...")
     
     hosts = sys.argv[1].split(",")

@@ -1,0 +1,13 @@
+Biomedical term similarity and relatedness from Pakhomov et
+al. "Semantic similarity and relatedness between clinical terms: An
+experimental study" (AMIA 2010). Data from UMNSRS_relatedness.csv and
+UMNSRS_similarity.csv, available from
+http://rxinformatics.umn.edu/SemanticRelatednessResources.html.
+
+Note: all words lowercased, stray dot removed from "allergy.", and
+"abortions.spontaneous" replaced with "spontaneous abortion".
+
+TODO: consider also "high correlation" subsets of 401 pairs for
+similarity and 430 pairs for relatedness following McInnes and
+Pedersen "Evaluating semantic similarity and relatedness over the
+semantic grouping of clinical term pairs" (J Biomed Inform. 2015).

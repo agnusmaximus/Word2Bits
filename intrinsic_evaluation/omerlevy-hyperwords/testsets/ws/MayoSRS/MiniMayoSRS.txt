@@ -1,0 +1,29 @@
+renal failure	kidney failure	4
+abortion	miscarriage	3.15
+heart	myocardium	3.15
+stroke	infarct	2.9
+delusion	schizophrenia	2.6
+calcification	stenosis	2.35
+tumor metastasis	adenocarcinoma	2.25
+congestive heart failure	pulmonary edema	2.2
+pulmonary fibrosis	malignant tumor of lung	1.55
+diarrhea	stomach cramps	1.8
+mitral stenosis	atrial fibrillation	1.8
+brain tumor	intracranial hemorrhage	1.65
+antibiotic	allergy	1.45
+pulmonary embolus	myocardial infarction	1.45
+carpal tunnel syndrome	osteoarthritis	1.55
+rheumatoid arthritis	lupus	1.55
+acne	syringe	1.5
+diabetes mellitus	hypertension	1.5
+cortisone	total knee replacement	1.35
+cholangiocarcinoma	colonoscopy	1.15
+lymphoid hyperplasia	laryngeal cancer	1.15
+appendicitis	osteoporosis	1
+depression	cellulitis	1
+hyperlipidemia	tumor metastasis	1
+multiple sclerosis	psychosis	1
+peptic ulcer disease	myopia	1
+rectal polyp	aorta	1
+varicose vein	entire knee meniscus	1
+xerostomia	alcoholic cirrhosis	1
