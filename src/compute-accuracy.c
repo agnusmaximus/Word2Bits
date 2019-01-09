@@ -66,7 +66,7 @@ int main(int argc, char **argv)
   char st1[max_size], st2[max_size], st3[max_size], st4[max_size], bestw[N][max_size], file_name[max_size];
   float dist, len, bestd[N], vec[max_size];
   long long words, size, a, b, c, d, b1, b2, b3, threshold = 0;
-  int bitlevel = 0;
+  int bitlevel = 0, binary = 0;
   float *M;
   char *vocab;
   int TCN, CCN = 0, TACN = 0, CACN = 0, SECN = 0, SYCN = 0, SEAC = 0, SYAC = 0, QID = 0, TQ = 0, TQS = 0;
@@ -102,7 +102,11 @@ int main(int argc, char **argv)
     }
     vocab[b * max_w + a] = 0;
     for (a = 0; a < max_w; a++) vocab[b * max_w + a] = toupper(vocab[b * max_w + a]);
-    for (a = 0; a < size; a++) fread(&M[a + b * size], sizeof(float), 1, f);
+    if (binary) {
+      for (a = 0; a < size; a++) fread(&M[a + b * size], sizeof(float), 1, f);
+    } else {
+      for (a = 0; a < size; a++) fscanf(f, "%f ", &M[a + b * size]);
+    }
     for (a = 0; a < size; a++) M[a+b*size] = quantize(M[a+b*size], bitlevel);
     len = 0;
     for (a = 0; a < size; a++) len += M[a + b * size] * M[a + b * size];
