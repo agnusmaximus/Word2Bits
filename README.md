@@ -32,7 +32,7 @@
 | 2                           | 400           | English Wikipedia 2017 | Top 400k         | 67M                    | [w2b_bitlevel2_size400_vocab400K.tar.gz](https://drive.google.com/open?id=1KHNDZW9dawwy9Ie73fdnMKAcGfadTI5J) |
 | 2                           | 800           | English Wikipedia 2017 | Top 400k         | 134M                   | [w2b_bitlevel2_size800_vocab400K.tar.gz](https://drive.google.com/open?id=1l3G4tyI8mU7bGsMG0TTPiM4fucmniJaR) |
 | 2                           | 1000          | English Wikipedia 2017 | Top 400k         | 168M                   | [w2b_bitlevel2_size1000_vocab400K.tar.gz](https://drive.google.com/open?id=1RX5z-jjpylAKTxpVazWqQmkDZ0XnumsB) |
-| 32                          | 200           | English Wikipedia 2017 | Top 400k         | 364M                   | w2b_bitlevel0_size200_vocab400K.tar.gz |
+| 32                          | 200           | English Wikipedia 2017 | Top 400k         | 364M                   | [w2b_bitlevel0_size200_vocab400K.tar.gz](https://drive.google.com/open?id=1HKiDirbJ9oxJN1HXGdczvmjWTIazE0Gb) |
 | 32                          | 400           | English Wikipedia 2017 | Top 400k         | 724M                   | w2b_bitlevel0_size400_vocab400K.tar.gz |
 | 32                          | 800           | English Wikipedia 2017 | Top 400k         | 1.4G                   | w2b_bitlevel0_size800_vocab400K.tar.gz |
 | 32                          | 1000          | English Wikipedia 2017 | Top 400k         | 1.8G                   | w2b_bitlevel0_size1000_vocab400K.tar.gz |
