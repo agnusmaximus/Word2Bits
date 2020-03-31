@@ -33,12 +33,12 @@
 | 2                           | 800           | English Wikipedia 2017 | Top 400k         | 134M                   | [w2b_bitlevel2_size800_vocab400K.tar.gz](https://drive.google.com/open?id=1l3G4tyI8mU7bGsMG0TTPiM4fucmniJaR) |
 | 2                           | 1000          | English Wikipedia 2017 | Top 400k         | 168M                   | [w2b_bitlevel2_size1000_vocab400K.tar.gz](https://drive.google.com/open?id=1RX5z-jjpylAKTxpVazWqQmkDZ0XnumsB) |
 | 32                          | 200           | English Wikipedia 2017 | Top 400k         | 364M                   | [w2b_bitlevel0_size200_vocab400K.tar.gz](https://drive.google.com/open?id=1HKiDirbJ9oxJN1HXGdczvmjWTIazE0Gb) |
-| 32                          | 400           | English Wikipedia 2017 | Top 400k         | 724M                   | w2b_bitlevel0_size400_vocab400K.tar.gz |
-| 32                          | 800           | English Wikipedia 2017 | Top 400k         | 1.4G                   | w2b_bitlevel0_size800_vocab400K.tar.gz |
-| 32                          | 1000          | English Wikipedia 2017 | Top 400k         | 1.8G                   | w2b_bitlevel0_size1000_vocab400K.tar.gz |
+| 32                          | 400           | English Wikipedia 2017 | Top 400k         | 724M                   | [w2b_bitlevel0_size400_vocab400K.tar.gz](https://drive.google.com/open?id=1ToIOpo0uhfGG48qsOZeDacPmt7Sh0Uup) |
+| 32                          | 800           | English Wikipedia 2017 | Top 400k         | 1.4G                   | [w2b_bitlevel0_size800_vocab400K.tar.gz](https://drive.google.com/open?id=1IMev4MIQKSx5CPgGhTxZo2EJ7nsVEVGT) |
+| 32                          | 1000          | English Wikipedia 2017 | Top 400k         | 1.8G                   | [w2b_bitlevel0_size1000_vocab400K.tar.gz](https://drive.google.com/open?id=1CtNjaQqK2Aw-iIeqRXdJOVNIqeALzOTi) |
 | 1                           | 800           | English Wikipedia 2017 | 3.7M (Full)      | 812M                   | [w2b_bitlevel1_size800_vocab3.7M.tar.gz](https://drive.google.com/open?id=1fisO5pl3KbP5DEGqb3-b8RxOsbqzquZE) |
 | 2                           | 400           | English Wikipedia 2017 | 3.7M (Full)      | 671M                   | [w2b_bitlevel2_size400_vocab3.7M.tar.gz](https://drive.google.com/open?id=139YwOxwhoIgKACXUJnfOdecxIueEkwf9) |
-| 32                          | 400           | English Wikipedia 2017 | 3.7M (Full)      | 6.7G                   | w2b_bitlevel0_size400_vocab3.7M.tar.gz |
+| 32                          | 400           | English Wikipedia 2017 | 3.7M (Full)      | 6.7G                   | [w2b_bitlevel0_size400_vocab3.7M.tar.gz](https://drive.google.com/open?id=1zyizh_oJ3RHtdaHdT_V7eQUTwETuXKm6) |
 
 ## Visualizing Quantized Word Vectors
 
